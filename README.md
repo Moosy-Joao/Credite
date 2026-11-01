@@ -61,6 +61,15 @@ As dependências serão adicionadas conforme a necessidade de cada etapa. Recurs
 7. Extrair serviços gradualmente e introduzir Gateway e mensageria.
 8. Implementar padrões distribuídos somente quando o fluxo justificar: Outbox, idempotência, retries, Circuit Breaker, DLQ e Saga.
 
+## Planejamento e governança
+
+O projeto está em fase de planejamento. A implementação permanece bloqueada até a confirmação da clonagem do repositório e da primeira validação local (restore, build e testes).
+
+- [Governança, regras e Definition of Done](docs/PLANEJAMENTO-E-GOVERNANCA.md)
+- [Roadmap e fases do projeto](docs/ROADMAP.md)
+- [Automações GitHub recomendadas para .NET](docs/AUTOMACOES-GITHUB-DOTNET.md)
+- [Modelo de ADR](docs/adr/0000-template.md)
+
 ## Estrutura inicial
 
 ```text
