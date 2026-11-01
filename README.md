@@ -74,6 +74,7 @@ O projeto está em fase de planejamento. A implementação permanece bloqueada a
 - [Governança, regras e Definition of Done](docs/PLANEJAMENTO-E-GOVERNANCA.md)
 - [Roadmap e fases do projeto](docs/ROADMAP.md)
 - [Requisitos funcionais e escopo do MVP](docs/REQUISITOS-MVP.md)
+- [Especificação e critérios de aceite do primeiro incremento](docs/PRIMEIRO-INCREMENTO.md)
 - [Automações GitHub recomendadas para .NET](docs/AUTOMACOES-GITHUB-DOTNET.md)
 - [Visão arquitetural e diagramas C4](docs/ARQUITETURA.md)
 - [Modelo de ADR](docs/adr/0000-template.md)
