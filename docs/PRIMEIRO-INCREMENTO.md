@@ -66,9 +66,10 @@ O formato exato do comando pode ser implementado no composition root existente, 
 
 - Configurar autenticação pelo cookie compartilhado.
 - Configurar políticas nomeadas/roles para proteger endpoints.
-- Criar apenas os endpoints mínimos necessários ao primeiro incremento, sem expor endpoints artificiais de teste no ambiente normal.
-- Manter os health checks públicos somente conforme configuração explícita.
-- Responder com 401 para não autenticado e 403 para autenticado sem autorização, seguindo ADR-0004.
+- Não criar endpoints de negócio neste incremento; os health checks continuam sendo as únicas rotas públicas operacionais.
+- Para testar a configuração real de autenticação/autorização HTTP, registrar um controller de teste exclusivamente no host de integração criado por `WebApplicationFactory`; esse controller não pode ser incluído no assembly/host publicado da API.
+- O endpoint de teste deve exigir uma policy/role e permitir verificar 401 sem autenticação, 403 para perfil não autorizado e sucesso para perfil autorizado.
+- O teste MVC → API deve comprovar o encaminhamento do cookie usando o host de integração, sem adicionar rota artificial à aplicação de produção.
 - Não implementar ainda endpoints de clientes, solicitações, avaliações ou administração de contas.
 
 ## 4. Fora do escopo
