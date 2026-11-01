@@ -41,6 +41,7 @@ A interface MVC consome as APIs pelo Gateway. Ela não acessa bancos de dados ne
 | Interface | ASP.NET Core MVC, Razor Views e Bootstrap |
 | Persistência | Entity Framework Core |
 | Banco de dados | Microsoft SQL Server (decisão registrada no ADR-0001) |
+| Identidade | ASP.NET Core Identity com cookies compartilhados (ADR-0002) |
 | Mensageria | RabbitMQ e MassTransit |
 | Gateway | YARP |
 | Cache | Redis, quando houver necessidade |
@@ -70,6 +71,7 @@ O projeto está em fase de planejamento. A implementação permanece bloqueada a
 - [Automações GitHub recomendadas para .NET](docs/AUTOMACOES-GITHUB-DOTNET.md)
 - [Modelo de ADR](docs/adr/0000-template.md)
 - [ADR-0001 — SQL Server e estratégia de persistência](docs/adr/0001-sql-server-e-estrategia-de-persistencia.md)
+- [ADR-0002 — Autenticação, autorização e dados fictícios](docs/adr/0002-autenticacao-autorizacao-e-dados-ficticios.md)
 
 ## Estrutura inicial
 
