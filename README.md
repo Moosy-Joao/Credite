@@ -61,9 +61,50 @@ As dependências serão adicionadas conforme a necessidade de cada etapa. Recurs
 7. Extrair serviços gradualmente e introduzir Gateway e mensageria.
 8. Implementar padrões distribuídos somente quando o fluxo justificar: Outbox, idempotência, retries, Circuit Breaker, DLQ e Saga.
 
+## Estrutura inicial
+
+```text
+Credite/
+├── src/
+│   ├── Credite.Api/
+│   ├── Credite.Web/
+│   ├── Credite.Application/
+│   ├── Credite.Domain/
+│   └── Credite.Infrastructure/
+├── tests/
+│   └── Credite.UnitTests/
+└── Credite.slnx
+```
+
+A solução contém uma API, uma aplicação MVC e os projetos de domínio, aplicação e infraestrutura. A interface MVC será cliente HTTP da API; os projetos de domínio e aplicação não dependem da camada de apresentação.
+
 ## Executar localmente
 
-Os comandos de execução serão documentados após a criação da solução e da configuração de infraestrutura. Requisitos previstos: SDK .NET 10 e Docker Desktop.
+Requisito: .NET 10 SDK.
+
+Na raiz do repositório:
+
+```bash
+dotnet restore Credite.slnx
+dotnet build Credite.slnx
+dotnet test Credite.slnx
+```
+
+Para iniciar a API:
+
+```bash
+dotnet run --project src/Credite.Api
+```
+
+A API expõe o endpoint inicial de verificação em `/health`.
+
+Para iniciar a interface MVC, em outro terminal:
+
+```bash
+dotnet run --project src/Credite.Web
+```
+
+As URLs locais serão exibidas pelo próprio comando `dotnet run`.
 
 ## Qualidade
 
