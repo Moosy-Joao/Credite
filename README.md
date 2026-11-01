@@ -7,60 +7,71 @@ Plataforma demonstrativa de gestão de solicitações de crédito, desenvolvida 
 - Desenvolver uma aplicação Back-End com ASP.NET Core e APIs REST.
 - Aplicar modelagem de domínio, validação, persistência e testes automatizados.
 - Construir uma interface administrativa com ASP.NET Core MVC e Razor Views.
-- Evoluir gradualmente de um monólito modular para serviços independentes.
-- Demonstrar comunicação assíncrona, resiliência, observabilidade e consistência eventual.
+- Evoluir gradualmente de um monólito modular para serviços independentes, somente quando houver justificativa.
+- Demonstrar boas práticas de engenharia, segurança, rastreabilidade e qualidade de software.
 
-## Escopo funcional
+## Escopo funcional do MVP
 
-- Cadastro e consulta de clientes fictícios.
-- Registro e acompanhamento de solicitações de crédito.
-- Simulação demonstrativa de parcelas e condições.
-- Avaliação por regras de negócio configuráveis e fictícias.
-- Histórico de alterações e notificações simuladas.
+O MVP entrega um fluxo vertical completo de gestão fictícia:
+
+- Autenticação e administração de contas internas com os perfis Administrador, Analista e Operador.
+- Cadastro, consulta e edição de clientes fictícios.
+- Registro, consulta e acompanhamento de solicitações.
+- Simulação e avaliação demonstrativa com regras explícitas e resultados explicáveis.
+- Histórico das principais operações, com autoria e data/hora.
+
+O escopo detalhado, os requisitos funcionais RF-001 a RF-026, a matriz de permissões, o fluxo de aceite e as exclusões estão em [Requisitos funcionais e escopo do MVP](docs/REQUISITOS-MVP.md).
+
+O MVP não inclui análise ou decisão de crédito real, dados pessoais/financeiros reais, integrações financeiras, portal de clientes, notificações externas, mensageria, cache distribuído, API Gateway ou microserviços.
 
 ## Arquitetura e evolução
 
-O desenvolvimento começa com uma aplicação modular, mantendo limites explícitos entre domínio, aplicação, infraestrutura e apresentação. A separação em microserviços ocorrerá somente quando houver uma necessidade arquitetural demonstrável.
+O desenvolvimento começa como monólito modular, mantendo limites explícitos entre domínio, aplicação, infraestrutura e apresentação. A separação em microserviços ocorrerá somente quando uma necessidade arquitetural demonstrável justificar seus custos operacionais e de complexidade.
 
-Arquitetura-alvo, a ser introduzida por etapas:
+A arquitetura-alvo poderá evoluir por etapas, fora do escopo inicial do MVP:
 
-- **API Gateway:** YARP como ponto de entrada para as APIs.
-- **Customer:** cadastro e consulta de clientes fictícios.
-- **Credit:** solicitações e simulações.
-- **Risk Analysis:** execução de regras demonstrativas de avaliação.
-- **Notification:** notificações simuladas.
+- **API Gateway:** YARP, caso exista necessidade de um ponto de entrada dedicado.
+- **Customer:** contexto de cadastro e consulta de clientes fictícios.
+- **Credit:** contexto de solicitações e simulações.
+- **Risk Analysis:** contexto de execução das regras demonstrativas.
+- **Notification:** contexto de notificações, se esse requisito for priorizado futuramente.
 
-A interface MVC consome as APIs pelo Gateway. Ela não acessa bancos de dados nem executa regras pertencentes a outros serviços.
+A interface MVC consome a API por HTTP e não acessa diretamente o banco nem executa regras de negócio. No MVP, a comunicação não depende de um API Gateway.
 
-## Tecnologias previstas
+## Tecnologias
 
 | Área | Tecnologia |
 |---|---|
 | Linguagem e plataforma | C# 14 / .NET 10 |
 | API | ASP.NET Core Web API |
 | Interface | ASP.NET Core MVC, Razor Views e Bootstrap |
-| Persistência | Entity Framework Core |
-| Banco de dados | Microsoft SQL Server (decisão registrada no ADR-0001) |
+| Persistência | Entity Framework Core 10 |
+| Banco de dados | Microsoft SQL Server (ADR-0001) |
 | Identidade | ASP.NET Core Identity com cookies compartilhados (ADR-0002) |
-| Mensageria | RabbitMQ e MassTransit |
-| Gateway | YARP |
-| Cache | Redis, quando houver necessidade |
-| Testes | xUnit |
-| Contêineres | Docker e Docker Compose |
-| Observabilidade | OpenTelemetry, logs estruturados e Health Checks |
+| Testes | xUnit; testes de integração com SQL Server descartável (ADR-0003) |
+| Contêineres | Docker e Docker Compose, conforme necessidade de desenvolvimento/testes |
+| Observabilidade | Logs estruturados, Health Checks e OpenTelemetry conforme o plano de qualidade |
+
+Tecnologias de evolução futura, não obrigatórias para o MVP:
+
+- RabbitMQ e MassTransit para mensageria.
+- YARP para API Gateway.
+- Redis para cache, quando houver necessidade medida.
+- OpenTelemetry para instrumentação e tracing conforme os requisitos operacionais.
+- Padrões distribuídos como Outbox, idempotência, retries, Circuit Breaker, DLQ e Saga, somente quando os fluxos justificarem.
 
 As dependências serão adicionadas conforme a necessidade de cada etapa. Recursos nativos do .NET serão priorizados quando forem suficientes.
 
 ## Plano incremental
 
 1. Definir requisitos, domínio e decisões arquiteturais.
-2. Criar a solução .NET, projetos, configuração e testes.
-3. Implementar o fluxo inicial de clientes e solicitações no monólito modular.
-4. Adicionar persistência, migrations, validações e testes de integração.
-5. Criar a interface MVC consumindo a API.
-6. Preparar Docker Compose e observabilidade.
-7. Extrair serviços gradualmente e introduzir Gateway e mensageria.
-8. Implementar padrões distribuídos somente quando o fluxo justificar: Outbox, idempotência, retries, Circuit Breaker, DLQ e Saga.
+2. Validar a solução localmente e preparar configuração e testes.
+3. Implementar clientes fictícios e solicitações no monólito modular.
+4. Implementar estados, histórico, simulações e avaliações demonstrativas.
+5. Integrar a interface MVC consumindo a API.
+6. Completar testes de integração, segurança, acessibilidade e critérios de aceite.
+7. Preparar execução local com Docker e observabilidade conforme necessidade.
+8. Avaliar extração de serviços, Gateway e mensageria somente com justificativa concreta.
 
 ## Planejamento e governança
 
@@ -68,6 +79,7 @@ O projeto está em fase de planejamento. A implementação permanece bloqueada a
 
 - [Governança, regras e Definition of Done](docs/PLANEJAMENTO-E-GOVERNANCA.md)
 - [Roadmap e fases do projeto](docs/ROADMAP.md)
+- [Requisitos funcionais e escopo do MVP](docs/REQUISITOS-MVP.md)
 - [Automações GitHub recomendadas para .NET](docs/AUTOMACOES-GITHUB-DOTNET.md)
 - [Modelo de ADR](docs/adr/0000-template.md)
 - [ADR-0001 — SQL Server e estratégia de persistência](docs/adr/0001-sql-server-e-estrategia-de-persistencia.md)
@@ -87,13 +99,15 @@ Credite/
 │   ├── Credite.Web/
 │   ├── Credite.Application/
 │   ├── Credite.Domain/
-│   └── Credite.Infrastructure/
+│   ├── Credite.Infrastructure/
+│   └── Credite.Contracts/       # definido no ADR-0005
 ├── tests/
-│   └── Credite.UnitTests/
+│   ├── Credite.UnitTests/
+│   └── Credite.IntegrationTests/ # definido no ADR-0003
 └── Credite.slnx
 ```
 
-A solução contém uma API, uma aplicação MVC e os projetos de domínio, aplicação e infraestrutura. A interface MVC será cliente HTTP da API; os projetos de domínio e aplicação não dependem da camada de apresentação.
+A estrutura representa os projetos previstos nas decisões aprovadas; a existência e compilação de todos eles ainda precisam ser confirmadas na validação local. A interface MVC será cliente HTTP da API; domínio e aplicação não dependem da camada de apresentação.
 
 ## Executar localmente
 
@@ -125,9 +139,11 @@ As URLs locais serão exibidas pelo próprio comando `dotnet run`.
 
 ## Qualidade
 
-- Testes automatizados para regras de domínio e fluxos de aplicação.
+- Testes unitários para regras de domínio e fluxos de aplicação.
+- Testes de integração com SQL Server descartável, conforme ADR-0003.
 - Contratos HTTP explícitos e códigos de status adequados.
-- Configurações sensíveis fornecidas por variáveis de ambiente ou User Secrets.
+- Autorização aplicada no servidor e testada na API.
+- Configurações sensíveis fornecidas por User Secrets ou variáveis de ambiente.
 - Nenhuma credencial, chave ou dado pessoal real versionado.
 - Commits pequenos e objetivos, escritos em português.
 
