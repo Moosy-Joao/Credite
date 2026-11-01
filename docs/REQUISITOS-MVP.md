@@ -3,7 +3,7 @@
 - **Estado:** Aprovado
 - **Data:** 2026-11-01
 - **Base de produto:** ADR-0007 — Visão do produto, atores e limites do Credite
-- **Decisões relacionadas:** ADR-0002 (autenticação e autorização), ADR-0003 (testes), ADR-0004 (contratos REST), ADR-0005 (arquitetura e camadas), ADR-0006 (requisitos não funcionais)
+- **Decisões relacionadas:** ADR-0002 (autenticação e autorização), ADR-0003 (testes), ADR-0004 (contratos REST), ADR-0005 (arquitetura e camadas), ADR-0006 (requisitos não funcionais), ADR-0008 (domínio), ADR-0009 (simulação demonstrativa)
 
 ## 1. Objetivo
 
@@ -77,7 +77,7 @@ A lista definitiva de estados, transições, pré-condições e ações permitid
 - **RF-022 — Registrar avaliação:** o sistema deve associar à solicitação o resultado demonstrativo, a versão ou identificação das regras aplicadas, os parâmetros relevantes, o autor e a data/hora.
 - **RF-023 — Consultar avaliações:** usuários autorizados devem consultar avaliações já registradas, sem sobrescrever silenciosamente resultados anteriores.
 
-Fórmulas, taxas fictícias, arredondamento, limites, exemplos e casos-limite serão definidos em decisão própria. A simulação não pode ser descrita como score, recomendação, aprovação ou negativa financeira real.
+O método aprovado é Tabela Price demonstrativa, com taxa mensal fixa, principal de R$ 100,00 a R$ 100.000,00, taxa de 0,00% a 5,00% a.m. e prazo de 1 a 60 meses. A regra de arredondamento, cronograma, exemplo de referência, snapshot/versionamento e testes estão definidos no ADR-0009. O registro de avaliação preserva o cálculo; não produz score, classificação de risco, recomendação, aprovação ou negativa financeira real.
 
 ### 4.5 Histórico e rastreabilidade
 
@@ -170,7 +170,6 @@ Este documento não fecha decisões que pertencem aos próximos itens de planeja
 - Vocabulário, entidades, value objects e agregados do domínio.
 - Estados e transições permitidas de uma solicitação.
 - Campos e validações dos clientes e solicitações.
-- Fórmulas e parâmetros das simulações demonstrativas.
 - Política de histórico/auditoria e retenção.
 - Telas, navegação, ViewModels e acessibilidade da interface.
 - Estratégia de configuração e ambientes.
@@ -183,4 +182,6 @@ Este documento não fecha decisões que pertencem aos próximos itens de planeja
 - ADR-0005 — Arquitetura inicial e limites entre camadas.
 - ADR-0006 — Requisitos não funcionais e critérios de qualidade.
 - ADR-0007 — Visão do produto, atores e limites do Credite.
+- ADR-0008 — Modelagem do domínio e ciclo de vida da solicitação.
+- ADR-0009 — Regras demonstrativas de simulação e avaliação.
 - [Roadmap do Credite](ROADMAP.md)
