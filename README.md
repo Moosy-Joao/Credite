@@ -90,6 +90,7 @@ O projeto está em fase de planejamento. A implementação permanece bloqueada a
 - [ADR-0006 — Requisitos não funcionais e critérios de qualidade](docs/adr/0006-requisitos-nao-funcionais-e-criterios-de-qualidade.md)
 - [ADR-0007 — Visão do produto, atores e limites do Credite](docs/adr/0007-visao-do-produto-atores-e-limites.md)
 - [ADR-0008 — Modelagem do domínio e ciclo de vida da solicitação](docs/adr/0008-modelagem-do-dominio-e-ciclo-de-vida-da-solicitacao.md)
+- [ADR-0009 — Regras demonstrativas de simulação e avaliação](docs/adr/0009-regras-demonstrativas-de-simulacao-e-avaliacao.md)
 
 ## Estrutura inicial
 
