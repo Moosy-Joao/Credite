@@ -36,7 +36,7 @@ A arquitetura-alvo poderá evoluir por etapas, fora do escopo inicial do MVP:
 - **Risk Analysis:** contexto de execução das regras demonstrativas.
 - **Notification:** contexto de notificações, se esse requisito for priorizado futuramente.
 
-A interface MVC consome a API por HTTP e não acessa diretamente o banco nem executa regras de negócio. No MVP, a comunicação não depende de um API Gateway.
+A interface administrativa usa MVC server-rendered com Razor Views e Bootstrap 5.3, consumindo a API por HTTP. Não acessa diretamente o banco nem executa regras de negócio. Jornadas, ViewModels, estados de tela, segurança e critérios de acessibilidade estão definidos no ADR-0010. No MVP, a comunicação não depende de um API Gateway.
 
 ## Tecnologias
 
@@ -91,6 +91,7 @@ O projeto está em fase de planejamento. A implementação permanece bloqueada a
 - [ADR-0007 — Visão do produto, atores e limites do Credite](docs/adr/0007-visao-do-produto-atores-e-limites.md)
 - [ADR-0008 — Modelagem do domínio e ciclo de vida da solicitação](docs/adr/0008-modelagem-do-dominio-e-ciclo-de-vida-da-solicitacao.md)
 - [ADR-0009 — Regras demonstrativas de simulação e avaliação](docs/adr/0009-regras-demonstrativas-de-simulacao-e-avaliacao.md)
+- [ADR-0010 — Interface administrativa MVC e jornadas](docs/adr/0010-interface-administrativa-e-jornadas-mvc.md)
 
 ## Estrutura inicial
 
