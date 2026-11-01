@@ -1,2 +1,78 @@
 # Credite
-Plataforma demonstrativa de solicitação e análise de crédito, desenvolvida em C# e .NET, com APIs REST e evolução gradual para arquitetura de microserviços.
+
+Plataforma demonstrativa de gestão de solicitações de crédito, desenvolvida com C# e .NET. O projeto tem finalidade educacional e de portfólio: utiliza dados fictícios e regras simuladas, sem realizar análise financeira real.
+
+## Objetivos
+
+- Desenvolver uma aplicação Back-End com ASP.NET Core e APIs REST.
+- Aplicar modelagem de domínio, validação, persistência e testes automatizados.
+- Construir uma interface administrativa com ASP.NET Core MVC e Razor Views.
+- Evoluir gradualmente de um monólito modular para serviços independentes.
+- Demonstrar comunicação assíncrona, resiliência, observabilidade e consistência eventual.
+
+## Escopo funcional
+
+- Cadastro e consulta de clientes fictícios.
+- Registro e acompanhamento de solicitações de crédito.
+- Simulação demonstrativa de parcelas e condições.
+- Avaliação por regras de negócio configuráveis e fictícias.
+- Histórico de alterações e notificações simuladas.
+
+## Arquitetura e evolução
+
+O desenvolvimento começa com uma aplicação modular, mantendo limites explícitos entre domínio, aplicação, infraestrutura e apresentação. A separação em microserviços ocorrerá somente quando houver uma necessidade arquitetural demonstrável.
+
+Arquitetura-alvo, a ser introduzida por etapas:
+
+- **API Gateway:** YARP como ponto de entrada para as APIs.
+- **Customer:** cadastro e consulta de clientes fictícios.
+- **Credit:** solicitações e simulações.
+- **Risk Analysis:** execução de regras demonstrativas de avaliação.
+- **Notification:** notificações simuladas.
+
+A interface MVC consome as APIs pelo Gateway. Ela não acessa bancos de dados nem executa regras pertencentes a outros serviços.
+
+## Tecnologias previstas
+
+| Área | Tecnologia |
+|---|---|
+| Linguagem e plataforma | C# 14 / .NET 10 |
+| API | ASP.NET Core Web API |
+| Interface | ASP.NET Core MVC, Razor Views e Bootstrap |
+| Persistência | Entity Framework Core |
+| Banco de dados | PostgreSQL (decisão inicial; revisar conforme a implementação) |
+| Mensageria | RabbitMQ e MassTransit |
+| Gateway | YARP |
+| Cache | Redis, quando houver necessidade |
+| Testes | xUnit |
+| Contêineres | Docker e Docker Compose |
+| Observabilidade | OpenTelemetry, logs estruturados e Health Checks |
+
+As dependências serão adicionadas conforme a necessidade de cada etapa. Recursos nativos do .NET serão priorizados quando forem suficientes.
+
+## Plano incremental
+
+1. Definir requisitos, domínio e decisões arquiteturais.
+2. Criar a solução .NET, projetos, configuração e testes.
+3. Implementar o fluxo inicial de clientes e solicitações no monólito modular.
+4. Adicionar persistência, migrations, validações e testes de integração.
+5. Criar a interface MVC consumindo a API.
+6. Preparar Docker Compose e observabilidade.
+7. Extrair serviços gradualmente e introduzir Gateway e mensageria.
+8. Implementar padrões distribuídos somente quando o fluxo justificar: Outbox, idempotência, retries, Circuit Breaker, DLQ e Saga.
+
+## Executar localmente
+
+Os comandos de execução serão documentados após a criação da solução e da configuração de infraestrutura. Requisitos previstos: SDK .NET 10 e Docker Desktop.
+
+## Qualidade
+
+- Testes automatizados para regras de domínio e fluxos de aplicação.
+- Contratos HTTP explícitos e códigos de status adequados.
+- Configurações sensíveis fornecidas por variáveis de ambiente ou User Secrets.
+- Nenhuma credencial, chave ou dado pessoal real versionado.
+- Commits pequenos e objetivos, escritos em português.
+
+## Aviso
+
+O Credite é um projeto educacional. Não é uma instituição financeira, não concede crédito e não deve ser utilizado para decisões financeiras reais.
