@@ -89,6 +89,7 @@ O projeto está em fase de planejamento. A implementação permanece bloqueada a
 - [ADR-0005 — Arquitetura inicial e limites entre camadas](docs/adr/0005-arquitetura-inicial-e-limites-entre-camadas.md)
 - [ADR-0006 — Requisitos não funcionais e critérios de qualidade](docs/adr/0006-requisitos-nao-funcionais-e-criterios-de-qualidade.md)
 - [ADR-0007 — Visão do produto, atores e limites do Credite](docs/adr/0007-visao-do-produto-atores-e-limites.md)
+- [ADR-0008 — Modelagem do domínio e ciclo de vida da solicitação](docs/adr/0008-modelagem-do-dominio-e-ciclo-de-vida-da-solicitacao.md)
 
 ## Estrutura inicial
 
