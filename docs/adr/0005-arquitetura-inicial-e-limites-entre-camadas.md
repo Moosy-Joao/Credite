@@ -84,6 +84,7 @@ As funcionalidades serão organizadas por áreas de negócio dentro dos projetos
 - [Microsoft — Infrastructure persistence layer design](https://learn.microsoft.com/dotnet/architecture/microservices/microservice-ddd-cqrs-patterns/infrastructure-persistence-layer-design)
 - [Microsoft — Design a DDD-oriented microservice](https://learn.microsoft.com/dotnet/architecture/microservices/microservice-ddd-cqrs-patterns/ddd-oriented-microservice)
 - [Microsoft — Share authentication cookies among ASP.NET apps](https://learn.microsoft.com/aspnet/core/security/cookie-sharing)
+- ADR-0012 — Evolução para microserviços e mensageria.
 - ADR-0001 — SQL Server e estratégia de persistência.
 - ADR-0002 — Autenticação, autorização e dados fictícios.
 - ADR-0003 — Estratégia de testes automatizados.
