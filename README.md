@@ -76,6 +76,7 @@ O projeto está em fase de planejamento. A implementação permanece bloqueada a
 - [ADR-0004 — Contratos REST, erros e convenções HTTP](docs/adr/0004-contratos-rest-erros-e-convencoes-http.md)
 - [ADR-0005 — Arquitetura inicial e limites entre camadas](docs/adr/0005-arquitetura-inicial-e-limites-entre-camadas.md)
 - [ADR-0006 — Requisitos não funcionais e critérios de qualidade](docs/adr/0006-requisitos-nao-funcionais-e-criterios-de-qualidade.md)
+- [ADR-0007 — Visão do produto, atores e limites do Credite](docs/adr/0007-visao-do-produto-atores-e-limites.md)
 
 ## Estrutura inicial
 
