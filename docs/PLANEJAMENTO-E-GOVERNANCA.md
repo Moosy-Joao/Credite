@@ -57,7 +57,7 @@ Até essa confirmação, não iniciar implementação de domínio, endpoints, ba
 - Documentação relacionada no repositório.
 - Sem decisão arquitetural crítica em aberto.
 
-## Definition of Done
+## Critério de Aceite
 
 Uma tarefa só pode ser concluída quando:
 - todos os critérios de aceite foram atendidos;
