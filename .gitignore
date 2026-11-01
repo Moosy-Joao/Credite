@@ -1,0 +1,43 @@
+## Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## Build
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa]rtifacts/
+artifacts/
+
+## Testes e cobertura
+TestResults/
+coverage/
+coverage.*
+
+## NuGet
+*.nupkg
+*.snupkg
+.nuget/
+
+## Logs
+*.log
+
+## Configurações locais e segredos
+.env
+.env.*
+!.env.example
+secrets.json
+appsettings.Development.local.json
+
+## Docker
+docker-compose.override.yml
+
+## Sistema operacional
+.DS_Store
+Thumbs.db
