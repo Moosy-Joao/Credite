@@ -73,6 +73,7 @@ O projeto está em fase de planejamento. A implementação permanece bloqueada a
 - [ADR-0001 — SQL Server e estratégia de persistência](docs/adr/0001-sql-server-e-estrategia-de-persistencia.md)
 - [ADR-0002 — Autenticação, autorização e dados fictícios](docs/adr/0002-autenticacao-autorizacao-e-dados-ficticios.md)
 - [ADR-0003 — Estratégia de testes automatizados](docs/adr/0003-estrategia-de-testes.md)
+- [ADR-0004 — Contratos REST, erros e convenções HTTP](docs/adr/0004-contratos-rest-erros-e-convencoes-http.md)
 
 ## Estrutura inicial
 
