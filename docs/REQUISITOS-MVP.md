@@ -3,7 +3,7 @@
 - **Estado:** Aprovado
 - **Data:** 2026-11-01
 - **Base de produto:** ADR-0007 — Visão do produto, atores e limites do Credite
-- **Decisões relacionadas:** ADR-0002 (autenticação e autorização), ADR-0003 (testes), ADR-0004 (contratos REST), ADR-0005 (arquitetura e camadas), ADR-0006 (requisitos não funcionais), ADR-0008 (domínio), ADR-0009 (simulação demonstrativa)
+- **Decisões relacionadas:** ADR-0002 (autenticação e autorização), ADR-0003 (testes), ADR-0004 (contratos REST), ADR-0005 (arquitetura e camadas), ADR-0006 (requisitos não funcionais), ADR-0008 (domínio), ADR-0009 (simulação demonstrativa), ADR-0010 (interface MVC)
 
 ## 1. Objetivo
 
@@ -171,7 +171,6 @@ Este documento não fecha decisões que pertencem aos próximos itens de planeja
 - Estados e transições permitidas de uma solicitação.
 - Campos e validações dos clientes e solicitações.
 - Política de histórico/auditoria e retenção.
-- Telas, navegação, ViewModels e acessibilidade da interface.
 - Estratégia de configuração e ambientes.
 
 ## 11. Referências internas
@@ -184,4 +183,5 @@ Este documento não fecha decisões que pertencem aos próximos itens de planeja
 - ADR-0007 — Visão do produto, atores e limites do Credite.
 - ADR-0008 — Modelagem do domínio e ciclo de vida da solicitação.
 - ADR-0009 — Regras demonstrativas de simulação e avaliação.
+- ADR-0010 — Interface administrativa MVC e jornadas.
 - [Roadmap do Credite](ROADMAP.md)
