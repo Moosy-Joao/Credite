@@ -28,13 +28,7 @@ O MVP não inclui análise ou decisão de crédito real, dados pessoais/financei
 
 O desenvolvimento começa como monólito modular, mantendo limites explícitos entre domínio, aplicação, infraestrutura e apresentação. A separação em microserviços ocorrerá somente quando uma necessidade arquitetural demonstrável justificar seus custos operacionais e de complexidade.
 
-A arquitetura-alvo poderá evoluir por etapas, fora do escopo inicial do MVP:
-
-- **API Gateway:** YARP, caso exista necessidade de um ponto de entrada dedicado.
-- **Customer:** contexto de cadastro e consulta de clientes fictícios.
-- **Credit:** contexto de solicitações e simulações.
-- **Risk Analysis:** contexto de execução das regras demonstrativas.
-- **Notification:** contexto de notificações, se esse requisito for priorizado futuramente.
+Os limites funcionais começam como módulos internos, não como serviços implantados separadamente. No MVP, Customer cuida dos clientes fictícios e Credit cuida das solicitações, avaliações, histórico e simulação. A simulação não é um serviço de análise de risco independente; Notification ainda não é um contexto funcional aprovado. Os critérios obrigatórios para uma extração futura, incluindo ownership de dados, autonomia, evidências operacionais e plano de migração, estão no ADR-0012.
 
 A interface administrativa usa MVC server-rendered com Razor Views e Bootstrap 5.3, consumindo a API por HTTP. Não acessa diretamente o banco nem executa regras de negócio. Jornadas, ViewModels, estados de tela, segurança e critérios de acessibilidade estão definidos no ADR-0010. No MVP, a comunicação não depende de um API Gateway.
 
@@ -54,11 +48,11 @@ A interface administrativa usa MVC server-rendered com Razor Views e Bootstrap 5
 
 Tecnologias de evolução futura, não obrigatórias para o MVP:
 
-- RabbitMQ e MassTransit para mensageria.
-- YARP para API Gateway.
+- RabbitMQ e MassTransit somente quando houver comunicação assíncrona durável entre processos e uma necessidade comprovada de desacoplamento.
+- YARP somente se múltiplos backends criarem uma necessidade real de gateway.
 - Redis para cache, quando houver necessidade medida.
 - Aspire Dashboard standalone opcional para inspeção local de logs, traces e métricas exportados por OTLP (ADR-0011).
-- Padrões distribuídos como Outbox, idempotência, retries, Circuit Breaker, DLQ e Saga, somente quando os fluxos justificarem.
+- Outbox, idempotência, retry/redelivery, Circuit Breaker, DLQ e Saga somente quando um fluxo distribuído específico exigir essas garantias (ADR-0012).
 
 As dependências serão adicionadas conforme a necessidade de cada etapa. Recursos nativos do .NET serão priorizados quando forem suficientes.
 
@@ -93,6 +87,7 @@ O projeto está em fase de planejamento. A implementação permanece bloqueada a
 - [ADR-0009 — Regras demonstrativas de simulação e avaliação](docs/adr/0009-regras-demonstrativas-de-simulacao-e-avaliacao.md)
 - [ADR-0010 — Interface administrativa MVC e jornadas](docs/adr/0010-interface-administrativa-e-jornadas-mvc.md)
 - [ADR-0011 — Observabilidade e operação local](docs/adr/0011-observabilidade-e-operacao-local.md)
+- [ADR-0012 — Evolução para microserviços e mensageria](docs/adr/0012-evolucao-para-microservicos-e-mensageria.md)
 
 ## Estrutura inicial
 
