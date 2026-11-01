@@ -78,6 +78,10 @@ As funcionalidades serão organizadas por áreas de negócio dentro dos projetos
 - **Módulos acessarem detalhes uns dos outros:** definir interfaces e contratos explícitos conforme os limites do domínio forem descobertos.
 - **Configuração incorreta de cookies compartilhados:** validar esquema, Data Protection e autorização em testes de integração antes de liberar o fluxo autenticado.
 
+## Visão arquitetural consolidada
+
+Os diagramas C4 de contexto, containers e componentes, a visão dinâmica do fluxo principal, a topologia de runtime e as dependências de compilação estão consolidados em [`docs/ARQUITETURA.md`](../ARQUITETURA.md). Esse documento representa a visão integrada dos ADRs e não substitui as decisões específicas aqui registradas.
+
 ## Referências
 
 - [Microsoft — Common web application architectures](https://learn.microsoft.com/dotnet/architecture/modern-web-apps-azure/common-web-application-architectures)
