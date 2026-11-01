@@ -50,14 +50,14 @@ A interface administrativa usa MVC server-rendered com Razor Views e Bootstrap 5
 | Identidade | ASP.NET Core Identity com cookies compartilhados (ADR-0002) |
 | Testes | xUnit; testes de integração com SQL Server descartável (ADR-0003) |
 | Contêineres | Docker e Docker Compose, conforme necessidade de desenvolvimento/testes |
-| Observabilidade | Logs estruturados, Health Checks e OpenTelemetry conforme o plano de qualidade |
+| Observabilidade | `ILogger`, OpenTelemetry/OTLP, Health Checks e Aspire Dashboard standalone opcional (ADR-0011) |
 
 Tecnologias de evolução futura, não obrigatórias para o MVP:
 
 - RabbitMQ e MassTransit para mensageria.
 - YARP para API Gateway.
 - Redis para cache, quando houver necessidade medida.
-- OpenTelemetry para instrumentação e tracing conforme os requisitos operacionais.
+- Aspire Dashboard standalone opcional para inspeção local de logs, traces e métricas exportados por OTLP (ADR-0011).
 - Padrões distribuídos como Outbox, idempotência, retries, Circuit Breaker, DLQ e Saga, somente quando os fluxos justificarem.
 
 As dependências serão adicionadas conforme a necessidade de cada etapa. Recursos nativos do .NET serão priorizados quando forem suficientes.
@@ -92,6 +92,7 @@ O projeto está em fase de planejamento. A implementação permanece bloqueada a
 - [ADR-0008 — Modelagem do domínio e ciclo de vida da solicitação](docs/adr/0008-modelagem-do-dominio-e-ciclo-de-vida-da-solicitacao.md)
 - [ADR-0009 — Regras demonstrativas de simulação e avaliação](docs/adr/0009-regras-demonstrativas-de-simulacao-e-avaliacao.md)
 - [ADR-0010 — Interface administrativa MVC e jornadas](docs/adr/0010-interface-administrativa-e-jornadas-mvc.md)
+- [ADR-0011 — Observabilidade e operação local](docs/adr/0011-observabilidade-e-operacao-local.md)
 
 ## Estrutura inicial
 
@@ -130,7 +131,7 @@ Para iniciar a API:
 dotnet run --project src/Credite.Api
 ```
 
-A API expõe o endpoint inicial de verificação em `/health`.
+A API expõe `/health/live` para liveness e `/health/ready` para readiness com verificação do SQL Server; `/health` permanece como alias da readiness. A aplicação MVC expõe `/health/live`. Os detalhes estão no ADR-0011.
 
 Para iniciar a interface MVC, em outro terminal:
 
