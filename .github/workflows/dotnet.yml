@@ -1,0 +1,32 @@
+name: Validação .NET
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@v4
+
+      - name: Configurar .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restaurar dependências
+        run: dotnet restore Credite.slnx
+
+      - name: Compilar solução
+        run: dotnet build Credite.slnx --no-restore --configuration Release
+
+      - name: Executar testes
+        run: dotnet test Credite.slnx --no-build --configuration Release
