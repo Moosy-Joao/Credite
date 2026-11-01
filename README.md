@@ -75,6 +75,7 @@ O projeto está em fase de planejamento. A implementação permanece bloqueada a
 - [Roadmap e fases do projeto](docs/ROADMAP.md)
 - [Requisitos funcionais e escopo do MVP](docs/REQUISITOS-MVP.md)
 - [Automações GitHub recomendadas para .NET](docs/AUTOMACOES-GITHUB-DOTNET.md)
+- [Visão arquitetural e diagramas C4](docs/ARQUITETURA.md)
 - [Modelo de ADR](docs/adr/0000-template.md)
 - [ADR-0001 — SQL Server e estratégia de persistência](docs/adr/0001-sql-server-e-estrategia-de-persistencia.md)
 - [ADR-0002 — Autenticação, autorização e dados fictícios](docs/adr/0002-autenticacao-autorizacao-e-dados-ficticios.md)
