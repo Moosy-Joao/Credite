@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="src/Credite.Api/Credite.Api.csproj" />
+  <Project Path="src/Credite.Web/Credite.Web.csproj" />
+  <Project Path="src/Credite.Application/Credite.Application.csproj" />
+  <Project Path="src/Credite.Domain/Credite.Domain.csproj" />
+  <Project Path="src/Credite.Infrastructure/Credite.Infrastructure.csproj" />
+  <Project Path="tests/Credite.UnitTests/Credite.UnitTests.csproj" />
+</Solution>
