@@ -173,7 +173,11 @@ Este documento não fecha decisões que pertencem aos próximos itens de planeja
 - Política de histórico/auditoria e retenção.
 - Estratégia de configuração e ambientes.
 
-## 11. Referências internas
+## 11. Primeiro incremento
+
+A primeira fatia técnica-funcional do MVP é a fundação de autenticação e autorização interna: provisionamento seguro do primeiro Administrador, login/logout MVC, cookie compartilhado, autorização da API e testes com SQL Server descartável. O escopo, critérios de aceite e sequência estão em [`docs/PRIMEIRO-INCREMENTO.md`](PRIMEIRO-INCREMENTO.md). Ela não entrega ainda o fluxo de negócio completo e não inclui CRUD de clientes ou solicitações.
+
+## 12. Referências internas
 
 - ADR-0002 — Autenticação, autorização e dados fictícios.
 - ADR-0003 — Estratégia de testes automatizados.
