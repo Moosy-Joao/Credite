@@ -58,7 +58,7 @@ Adotar requisitos não funcionais proporcionais ao estágio do projeto, organiza
 - Acompanhar métricas de requisições, duração e erros nos fluxos principais.
 - Disponibilizar Health Checks para aplicação e dependências relevantes.
 - Não registrar dados sensíveis.
-- A escolha e configuração detalhada de OpenTelemetry, exportadores e ferramentas de visualização será tratada no planejamento específico de observabilidade, sem antecipar infraestrutura desnecessária.
+- A estratégia e operação local de OpenTelemetry, OTLP, Health Checks e Aspire Dashboard standalone estão definidas no ADR-0011, sem exigir uma plataforma permanente de APM.
 
 ### 6. Manutenibilidade e testabilidade
 
@@ -108,6 +108,7 @@ Adotar requisitos não funcionais proporcionais ao estágio do projeto, organiza
 - [Microsoft — ASP.NET Core performance best practices](https://learn.microsoft.com/aspnet/core/fundamentals/best-practices)
 - [Microsoft — Health checks in ASP.NET Core](https://learn.microsoft.com/aspnet/core/host-and-deploy/health-checks)
 - [Microsoft — .NET observability](https://learn.microsoft.com/dotnet/core/diagnostics/observability-with-otel)
+- ADR-0011 — Observabilidade e operação local.
 - [Microsoft — .NET and .NET Core support policy](https://dotnet.microsoft.com/platform/support/policy/dotnet-core)
 - ADR-0002 — Autenticação, autorização e dados fictícios.
 - ADR-0003 — Estratégia de testes automatizados.
