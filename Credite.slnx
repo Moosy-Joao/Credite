@@ -4,5 +4,6 @@
   <Project Path="src/Credite.Application/Credite.Application.csproj" />
   <Project Path="src/Credite.Domain/Credite.Domain.csproj" />
   <Project Path="src/Credite.Infrastructure/Credite.Infrastructure.csproj" />
+  <Project Path="tests/Credite.IntegrationTests/Credite.IntegrationTests.csproj" />
   <Project Path="tests/Credite.UnitTests/Credite.UnitTests.csproj" />
 </Solution>
