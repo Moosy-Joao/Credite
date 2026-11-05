@@ -1,0 +1,22 @@
+# EditorConfig: https://editorconfig.org
+# Convenções mínimas do Credite (docs/AUTOMACOES-GITHUB-DOTNET.md, seção 5).
+root = true
+
+[*]
+charset = utf-8
+indent_style = space
+insert_final_newline = true
+trim_trailing_whitespace = true
+# end_of_line fica sem definição de propósito: o Git normaliza as quebras de linha
+# (LF no repositório; CRLF no Windows com core.autocrlf), e fixar um valor aqui
+# faria o dotnet format reprovar todos os arquivos de uma das duas máquinas.
+
+[*.{cs,csx}]
+indent_size = 4
+
+[*.{csproj,props,targets,slnx,xml,json,yml,yaml}]
+indent_size = 2
+
+[*.md]
+# Em Markdown, dois espaços no fim da linha significam quebra de linha.
+trim_trailing_whitespace = false
