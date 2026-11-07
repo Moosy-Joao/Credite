@@ -14,6 +14,10 @@
     <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="10.0.14" />
   </ItemGroup>
 
+  <ItemGroup Label="Hospedagem">
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.14" />
+  </ItemGroup>
+
   <ItemGroup Label="Testes">
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
     <!-- TRANSIÇÃO TÉCNICA (Etapa 2): contêiner SQL Server dos testes do Identity, removido na Etapa 3. -->

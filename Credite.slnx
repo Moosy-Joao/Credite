@@ -26,6 +26,11 @@
     <Project Path="src/Services/Identity/Credite.Identity.Infrastructure/Credite.Identity.Infrastructure.csproj" />
     <Project Path="tests/Identity/Credite.Identity.IntegrationTests/Credite.Identity.IntegrationTests.csproj" />
   </Folder>
+  <Folder Name="/Services/Notification/">
+    <Project Path="src/Services/Notification/Credite.Notification.Application/Credite.Notification.Application.csproj" />
+    <Project Path="src/Services/Notification/Credite.Notification.Infrastructure/Credite.Notification.Infrastructure.csproj" />
+    <Project Path="src/Services/Notification/Credite.Notification.Worker/Credite.Notification.Worker.csproj" />
+  </Folder>
   <Folder Name="/Web/">
     <Project Path="src/Credite.Web/Credite.Web.csproj" />
   </Folder>
