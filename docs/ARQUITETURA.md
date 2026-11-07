@@ -1,8 +1,8 @@
 # Arquitetura do Credite
 
 - **Estado:** Especificação consolidada
-- **Atualização:** 2026-11-01
-- **Decisões normativas:** ADR-0001 a ADR-0012
+- **Atualização:** 2026-11-07
+- **Decisões normativas:** ADR-0001 a ADR-0013
 - **Escopo:** arquitetura lógica e runtime do MVP; não representa infraestrutura implantada nem comprova que todos os projetos já existem/compilam.
 
 Este documento reúne a visão arquitetural aprovada e os diagramas de referência. Quando houver divergência, os ADRs específicos prevalecem para a decisão detalhada. Os diagramas devem ser atualizados junto com mudanças de arquitetura.
@@ -245,8 +245,21 @@ Não está definido um ambiente de produção, domínio, provedor cloud, orquest
 - ADR-0010 — Interface administrativa MVC.
 - ADR-0011 — Observabilidade e operação local.
 - ADR-0012 — Evolução para microserviços e mensageria.
+- ADR-0013 — Laboratórios de PostgreSQL, MongoDB e Apache Kafka.
 
-## 14. Referências
+## 14. Trilha educacional Back-End — fora do MVP
+
+A evolução profissional do responsável inclui aprofundar C#/.NET, APIs REST, arquitetura, SQL, PostgreSQL, MongoDB, Apache Kafka e microsserviços. Essa trilha não muda automaticamente as decisões do produto.
+
+- **Stack praticada no Credite:** C# 14, .NET 10, ASP.NET Core, APIs REST, EF Core 10, SQL Server, Identity, xUnit e testes de integração.
+- **PostgreSQL:** laboratório relacional comparativo com SQL Server; não substitui o banco do MVP.
+- **MongoDB:** laboratório de modelagem documental; não será adicionado como persistência paralela sem caso de uso.
+- **Apache Kafka:** laboratório isolado de producers, consumers, topics, partitions, consumer groups, idempotência, retry e dead-letter topic. Não integrar ao fluxo principal do MVP.
+- **Microsserviços:** exercício posterior de extração de um contexto estável, com ownership de dados, contratos, falhas parciais, consistência eventual e observabilidade.
+
+O critério para considerar cada assunto dominado é conseguir explicar, implementar, testar, diagnosticar falhas e justificar trade-offs. Diferenciar sempre tecnologia utilizada no produto, praticada em laboratório e apenas estudada.
+
+## 15. Referências
 
 - [C4 Model — Diagrams](https://c4model.com/diagrams)
 - [C4 Model — Notation](https://c4model.com/diagrams/notation)
