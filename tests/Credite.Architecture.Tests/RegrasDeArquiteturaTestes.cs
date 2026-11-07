@@ -30,7 +30,17 @@ public sealed class RegrasDeArquiteturaTestes
         // O Notification não tem Domain: ele só será criado quando houver regras de negócio próprias.
         "Credite.Notification.Application",
         "Credite.Notification.Infrastructure",
-        "Credite.Notification.Worker"
+        "Credite.Notification.Worker",
+        // Projetos de testes: também fazem parte da estrutura obrigatória da solução.
+        "Credite.Architecture.Tests",
+        "Credite.Identity.UnitTests",
+        "Credite.Identity.IntegrationTests",
+        "Credite.Customer.UnitTests",
+        "Credite.Customer.IntegrationTests",
+        "Credite.Credit.UnitTests",
+        "Credite.Credit.IntegrationTests",
+        "Credite.Notification.UnitTests",
+        "Credite.Notification.IntegrationTests"
     ];
 
     // TRANSIÇÃO TÉCNICA (Etapa 2): o Identity ainda usa SQL Server. Esta lista de exceções
