@@ -12,12 +12,16 @@
     <Project Path="src/Services/Credit/Credite.Credit.Application/Credite.Credit.Application.csproj" />
     <Project Path="src/Services/Credit/Credite.Credit.Domain/Credite.Credit.Domain.csproj" />
     <Project Path="src/Services/Credit/Credite.Credit.Infrastructure/Credite.Credit.Infrastructure.csproj" />
+    <Project Path="tests/Credit/Credite.Credit.IntegrationTests/Credite.Credit.IntegrationTests.csproj" />
+    <Project Path="tests/Credit/Credite.Credit.UnitTests/Credite.Credit.UnitTests.csproj" />
   </Folder>
   <Folder Name="/Services/Customer/">
     <Project Path="src/Services/Customer/Credite.Customer.Api/Credite.Customer.Api.csproj" />
     <Project Path="src/Services/Customer/Credite.Customer.Application/Credite.Customer.Application.csproj" />
     <Project Path="src/Services/Customer/Credite.Customer.Domain/Credite.Customer.Domain.csproj" />
     <Project Path="src/Services/Customer/Credite.Customer.Infrastructure/Credite.Customer.Infrastructure.csproj" />
+    <Project Path="tests/Customer/Credite.Customer.IntegrationTests/Credite.Customer.IntegrationTests.csproj" />
+    <Project Path="tests/Customer/Credite.Customer.UnitTests/Credite.Customer.UnitTests.csproj" />
   </Folder>
   <Folder Name="/Services/Identity/">
     <Project Path="src/Services/Identity/Credite.Identity.Api/Credite.Identity.Api.csproj" />
@@ -25,11 +29,14 @@
     <Project Path="src/Services/Identity/Credite.Identity.Domain/Credite.Identity.Domain.csproj" />
     <Project Path="src/Services/Identity/Credite.Identity.Infrastructure/Credite.Identity.Infrastructure.csproj" />
     <Project Path="tests/Identity/Credite.Identity.IntegrationTests/Credite.Identity.IntegrationTests.csproj" />
+    <Project Path="tests/Identity/Credite.Identity.UnitTests/Credite.Identity.UnitTests.csproj" />
   </Folder>
   <Folder Name="/Services/Notification/">
     <Project Path="src/Services/Notification/Credite.Notification.Application/Credite.Notification.Application.csproj" />
     <Project Path="src/Services/Notification/Credite.Notification.Infrastructure/Credite.Notification.Infrastructure.csproj" />
     <Project Path="src/Services/Notification/Credite.Notification.Worker/Credite.Notification.Worker.csproj" />
+    <Project Path="tests/Notification/Credite.Notification.IntegrationTests/Credite.Notification.IntegrationTests.csproj" />
+    <Project Path="tests/Notification/Credite.Notification.UnitTests/Credite.Notification.UnitTests.csproj" />
   </Folder>
   <Folder Name="/Web/">
     <Project Path="src/Credite.Web/Credite.Web.csproj" />
