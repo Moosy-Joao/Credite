@@ -4,7 +4,7 @@ Este roadmap orienta a evolução do produto e a formação prática em Back-End
 
 ## Fase 0 — Preparação e verificação local
 
-<badge>Concluída em 2026-11-01 pelo responsável</badge>
+**Status: concluída em 2026-11-01 pelo responsável.**
 
 - [x] Clonar o repositório.
 - [x] Abrir `Credite.slnx` no Visual Studio Community.
