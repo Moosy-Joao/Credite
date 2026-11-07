@@ -2,24 +2,13 @@
 
 ## Estado atual
 
-**Fase: planejamento e especificação. Implementação bloqueada.**
+**Validação inicial concluída; desenvolvimento incremental autorizado conforme especificações e backlog aprovados.**
 
-O objetivo desta fase é concluir requisitos, decisões de arquitetura, modelo de domínio, fluxos, critérios de aceite, estratégia de testes, segurança, observabilidade, documentação e plano incremental antes de construir funcionalidades.
+Em 2026-11-01, o responsável confirmou a clonagem do repositório, abertura de `Credite.slnx` no Visual Studio Community, SDK .NET 10 instalado e execução bem-sucedida de restore, build e testes.
 
-## Regra de início obrigatório
+Essa etapa está encerrada. Não solicitar novamente a confirmação nem tratá-la como bloqueio. Restore, build e testes continuam fazendo parte da validação normal de cada alteração técnica.
 
-Antes de iniciar qualquer implementação, o responsável deve:
-
-1. Clonar `https://github.com/Moosy-Joao/Credite.git`.
-2. Abrir `Credite.slnx` no Visual Studio Community.
-3. Confirmar a instalação do SDK .NET 10.
-4. Executar `dotnet restore Credite.slnx`.
-5. Executar `dotnet build Credite.slnx`.
-6. Executar `dotnet test Credite.slnx`.
-7. Registrar os resultados e resolver os erros encontrados.
-8. Confirmar explicitamente que essa etapa foi concluída.
-
-Até essa confirmação, não iniciar implementação de domínio, endpoints, banco de dados, interface, mensageria ou microserviços. O planejamento e a documentação podem continuar.
+O Credite permanece como monólito modular no MVP, com SQL Server como banco oficial. Kafka, PostgreSQL, MongoDB e microsserviços pertencem inicialmente à trilha educacional isolada.
 
 ## Princípios de engenharia
 
@@ -78,3 +67,6 @@ Decisões duradouras devem ser registradas em `docs/adr/` usando o modelo `docs/
 - [Roadmap](ROADMAP.md)
 - [Automações GitHub para .NET](AUTOMACOES-GITHUB-DOTNET.md)
 - [Template de ADR](adr/0000-template.md)
+- [Plano de aprendizado Back-End C#/.NET](PLANO-DE-APRENDIZADO-BACKEND.md)
+- [ADR-0012 — Evolução para microserviços e mensageria](adr/0012-evolucao-para-microservicos-e-mensageria.md)
+- [ADR-0013 — Laboratórios de PostgreSQL, MongoDB e Apache Kafka](adr/0013-laboratorios-postgresql-mongodb-kafka.md)
