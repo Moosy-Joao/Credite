@@ -1,3 +1,5 @@
+> **Nota de revisão (2026-11-07):** a escolha de MVC/Razor como interface administrativa permanece como referência de apresentação, mas as premissas de integração com uma única API, autenticação por cookie compartilhado e encaminhamento de identidade pertencem à arquitetura anterior. A integração da interface com Identity, Customer e Credit, a sessão e eventual BFF/Gateway dependem de ADR-0015. Não implementar os detalhes antigos até essa decisão ser aprovada.
+
 # ADR-0010 — Interface administrativa MVC e jornadas do usuário
 
 - **Estado:** Aceita
