@@ -152,3 +152,31 @@ A primeira capacidade a extrair não está pré-determinada. Ela será escolhida
 - ADR-0005 — Arquitetura inicial e limites entre camadas.
 - ADR-0008 — Modelagem do domínio e ciclo de vida da solicitação.
 - ADR-0011 — Observabilidade e operação local.
+
+
+---
+
+## Aditamento — prioridade de aprendizagem em 2026-11-07
+
+Este aditamento atualiza a trilha educacional do responsável sem substituir a decisão arquitetural original nem alterar o escopo do MVP.
+
+### Apache Kafka como laboratório principal de mensageria
+
+O foco atual de aprendizagem passou a incluir Apache Kafka. Por isso, Kafka será o broker principal utilizado nos exercícios práticos de comunicação assíncrona, producers, consumers, topics, partitions, offsets, consumer groups, idempotência, reprocessamento e dead-letter topic.
+
+Esse direcionamento é **educacional**. Não significa que Kafka será adicionado ao Credite agora, nem que RabbitMQ/MassTransit foram tecnicamente reprovados para qualquer cenário futuro. Se um requisito real vier a justificar mensageria no produto, a escolha do broker deverá ser reavaliada em ADR específico, considerando o padrão de mensagens, ordenação, retenção, roteamento, operação e compatibilidade com a solução .NET.
+
+### Limites preservados
+
+- O MVP continua como monólito modular.
+- SQL Server continua como banco oficial.
+- A comunicação MVC → API continua HTTP.
+- Não adicionar broker, gateway, cache distribuído ou microsserviço ao MVP apenas para demonstrar tecnologia.
+- Laboratórios devem ficar isolados do caminho crítico do produto.
+- Outbox, Saga, retry e DLQ serão estudados em contexto progressivo, após fundamentos de transações, eventos e processamento concorrente.
+
+### Referências complementares
+
+- [Apache Kafka Documentation](https://kafka.apache.org/documentation/)
+- [Apache Kafka — Design](https://kafka.apache.org/documentation/#design)
+- ADR-0013 — Laboratórios de PostgreSQL, MongoDB e Apache Kafka.
