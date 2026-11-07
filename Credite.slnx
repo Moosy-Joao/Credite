@@ -7,6 +7,12 @@
   <Folder Name="/Architecture/">
     <Project Path="tests/Credite.Architecture.Tests/Credite.Architecture.Tests.csproj" />
   </Folder>
+  <Folder Name="/Services/Credit/">
+    <Project Path="src/Services/Credit/Credite.Credit.Api/Credite.Credit.Api.csproj" />
+    <Project Path="src/Services/Credit/Credite.Credit.Application/Credite.Credit.Application.csproj" />
+    <Project Path="src/Services/Credit/Credite.Credit.Domain/Credite.Credit.Domain.csproj" />
+    <Project Path="src/Services/Credit/Credite.Credit.Infrastructure/Credite.Credit.Infrastructure.csproj" />
+  </Folder>
   <Folder Name="/Services/Customer/">
     <Project Path="src/Services/Customer/Credite.Customer.Api/Credite.Customer.Api.csproj" />
     <Project Path="src/Services/Customer/Credite.Customer.Application/Credite.Customer.Application.csproj" />
