@@ -5,8 +5,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../Credite.Application/Credite.Application.csproj" />
-    <ProjectReference Include="../Credite.Infrastructure/Credite.Infrastructure.csproj" />
+    <ProjectReference Include="../Credite.Identity.Application/Credite.Identity.Application.csproj" />
+    <ProjectReference Include="../Credite.Identity.Infrastructure/Credite.Identity.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

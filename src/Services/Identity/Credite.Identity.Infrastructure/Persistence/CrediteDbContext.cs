@@ -1,9 +1,9 @@
-using Credite.Infrastructure.Identity;
+using Credite.Identity.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace Credite.Infrastructure.Persistence;
+namespace Credite.Identity.Infrastructure.Persistence;
 
 public sealed class CrediteDbContext(DbContextOptions<CrediteDbContext> options)
     : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>(options)

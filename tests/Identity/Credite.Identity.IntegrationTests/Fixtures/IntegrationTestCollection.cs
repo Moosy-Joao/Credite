@@ -1,6 +1,6 @@
 using Xunit;
 
-namespace Credite.IntegrationTests.Fixtures;
+namespace Credite.Identity.IntegrationTests.Fixtures;
 
 [CollectionDefinition(Name)]
 public sealed class IntegrationTestCollection : ICollectionFixture<IntegrationTestFixture>

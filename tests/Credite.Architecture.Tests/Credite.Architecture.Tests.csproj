@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <!-- Os testes de arquitetura leem os arquivos .csproj; por isso não referenciam nenhum projeto. -->
   <PropertyGroup>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
@@ -12,11 +13,6 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="../../src/Credite.Domain/Credite.Domain.csproj" />
-    <ProjectReference Include="../../src/Credite.Application/Credite.Application.csproj" />
   </ItemGroup>
 
 </Project>

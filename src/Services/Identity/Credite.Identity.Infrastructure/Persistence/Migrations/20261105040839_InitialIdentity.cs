@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Credite.Infrastructure.Persistence.Migrations
+namespace Credite.Identity.Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
     public partial class InitialIdentity : Migration

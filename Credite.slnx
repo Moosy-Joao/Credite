@@ -1,9 +1,20 @@
 <Solution>
-  <Project Path="src/Credite.Api/Credite.Api.csproj" />
-  <Project Path="src/Credite.Web/Credite.Web.csproj" />
-  <Project Path="src/Credite.Application/Credite.Application.csproj" />
-  <Project Path="src/Credite.Domain/Credite.Domain.csproj" />
-  <Project Path="src/Credite.Infrastructure/Credite.Infrastructure.csproj" />
-  <Project Path="tests/Credite.IntegrationTests/Credite.IntegrationTests.csproj" />
-  <Project Path="tests/Credite.UnitTests/Credite.UnitTests.csproj" />
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+  </Folder>
+  <Folder Name="/Architecture/">
+    <Project Path="tests/Credite.Architecture.Tests/Credite.Architecture.Tests.csproj" />
+  </Folder>
+  <Folder Name="/Services/Identity/">
+    <Project Path="src/Services/Identity/Credite.Identity.Api/Credite.Identity.Api.csproj" />
+    <Project Path="src/Services/Identity/Credite.Identity.Application/Credite.Identity.Application.csproj" />
+    <Project Path="src/Services/Identity/Credite.Identity.Domain/Credite.Identity.Domain.csproj" />
+    <Project Path="src/Services/Identity/Credite.Identity.Infrastructure/Credite.Identity.Infrastructure.csproj" />
+    <Project Path="tests/Identity/Credite.Identity.IntegrationTests/Credite.Identity.IntegrationTests.csproj" />
+  </Folder>
+  <Folder Name="/Web/">
+    <Project Path="src/Credite.Web/Credite.Web.csproj" />
+  </Folder>
 </Solution>

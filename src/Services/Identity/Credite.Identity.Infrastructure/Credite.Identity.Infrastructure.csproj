@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="../Credite.Application/Credite.Application.csproj" />
-    <ProjectReference Include="../Credite.Domain/Credite.Domain.csproj" />
+    <ProjectReference Include="../Credite.Identity.Application/Credite.Identity.Application.csproj" />
+    <ProjectReference Include="../Credite.Identity.Domain/Credite.Identity.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>

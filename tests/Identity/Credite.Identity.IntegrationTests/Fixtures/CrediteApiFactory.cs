@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 
-namespace Credite.IntegrationTests.Fixtures;
+namespace Credite.Identity.IntegrationTests.Fixtures;
 
 /// <summary>Inicia a API real em memória para os testes.</summary>
 public sealed class CrediteApiFactory : WebApplicationFactory<Program>

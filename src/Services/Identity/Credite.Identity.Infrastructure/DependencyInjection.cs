@@ -1,10 +1,10 @@
-using Credite.Infrastructure.Identity;
-using Credite.Infrastructure.Persistence;
+using Credite.Identity.Infrastructure.Identity;
+using Credite.Identity.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Credite.Infrastructure;
+namespace Credite.Identity.Infrastructure;
 
 public static class DependencyInjection
 {

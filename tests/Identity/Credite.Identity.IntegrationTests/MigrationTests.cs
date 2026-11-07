@@ -1,10 +1,10 @@
-using Credite.Infrastructure.Persistence;
-using Credite.IntegrationTests.Fixtures;
+using Credite.Identity.Infrastructure.Persistence;
+using Credite.Identity.IntegrationTests.Fixtures;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace Credite.IntegrationTests.Infrastructure;
+namespace Credite.Identity.IntegrationTests;
 
 [Collection(IntegrationTestCollection.Name)]
 public sealed class MigrationTests(IntegrationTestFixture fixture)

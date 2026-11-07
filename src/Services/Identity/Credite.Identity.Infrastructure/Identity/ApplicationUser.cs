@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 
-namespace Credite.Infrastructure.Identity;
+namespace Credite.Identity.Infrastructure.Identity;
 
 /// <summary>
 /// Conta de acesso ao sistema (ADR-0002). Fica na Infrastructure para que o Domain

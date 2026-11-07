@@ -1,11 +1,11 @@
-using Credite.Infrastructure.Persistence;
+using Credite.Identity.Infrastructure.Persistence;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.MsSql;
 using Xunit;
 
-namespace Credite.IntegrationTests.Fixtures;
+namespace Credite.Identity.IntegrationTests.Fixtures;
 
 /// <summary>
 /// Sobe um SQL Server descartável e a API apontando para ele.

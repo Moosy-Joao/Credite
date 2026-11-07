@@ -1,8 +1,8 @@
 using System.Net;
-using Credite.IntegrationTests.Fixtures;
+using Credite.Identity.IntegrationTests.Fixtures;
 using Xunit;
 
-namespace Credite.IntegrationTests.Api;
+namespace Credite.Identity.IntegrationTests.Api;
 
 [Collection(IntegrationTestCollection.Name)]
 public sealed class HealthTests(IntegrationTestFixture fixture)

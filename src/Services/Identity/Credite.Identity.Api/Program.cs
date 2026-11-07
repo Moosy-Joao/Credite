@@ -1,4 +1,4 @@
-using Credite.Infrastructure;
+using Credite.Identity.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,7 +17,7 @@ app.MapControllers();
 app.MapGet("/health", () => Results.Ok(new
 {
     status = "Healthy",
-    service = "Credite.Api"
+    service = "Credite.Identity.Api"
 }));
 
 app.Run();

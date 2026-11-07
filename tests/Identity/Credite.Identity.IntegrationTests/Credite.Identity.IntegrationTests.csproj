@@ -17,8 +17,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../src/Credite.Api/Credite.Api.csproj" />
-    <ProjectReference Include="../../src/Credite.Infrastructure/Credite.Infrastructure.csproj" />
+    <ProjectReference Include="../../../src/Services/Identity/Credite.Identity.Api/Credite.Identity.Api.csproj" />
+    <ProjectReference Include="../../../src/Services/Identity/Credite.Identity.Infrastructure/Credite.Identity.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
