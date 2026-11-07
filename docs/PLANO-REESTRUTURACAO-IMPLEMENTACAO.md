@@ -63,3 +63,16 @@ Se um item for pré-requisito, parar nesse ponto, explicar a dependência e apre
 ## 7. Aceite
 
 Sem acesso cruzado a bancos; PostgreSQL e migrations independentes nos três serviços; MongoDB exclusivo no Notification; Outbox transacional; Kafka com idempotência, retry limitado e dead-letter topic; interface sem acesso direto a bancos; testes executados e reportados; nenhuma decisão de ADR-0015 presumida; documentação fiel ao código.
+
+## 8. Transições técnicas registradas
+
+### 8.1 SQL Server no Identity (Etapa 2 para Etapa 3)
+
+- Estado: transição técnica autorizada em 2026-11-07, durante a Etapa 2. Não é uma decisão arquitetural: o ADR-0014 continua sendo a referência.
+- Escopo: Credite.Identity.Infrastructure (pacote Microsoft.EntityFrameworkCore.SqlServer, UseSqlServer e a migration InitialIdentity) e Credite.Identity.IntegrationTests (Testcontainers.MsSql).
+- Condição: **obrigatoriamente encerrada na Etapa 3**, com PostgreSQL, baseline nova de migration, mapeamento explícito do Identity para português snake_case e remoção dos pacotes e da fixture de SQL Server.
+- Controle: a lista ProjetosComExcecaoDeSqlServer, em RegrasDeArquiteturaTestes, e os comentários "TRANSIÇÃO TÉCNICA" em Directory.Packages.props. Ao fim da Etapa 3 a lista deve estar vazia e as exceções removidas.
+
+### 8.2 Nomes legados em inglês (Etapa 2 para Etapa 3)
+
+Foram movidos sem renomeação de identificadores: ApplicationUser, CrediteDbContext, AddInfrastructure e as classes e métodos dos testes de integração do Identity. A chave de configuração CrediteDb e o UserSecretsId do host do Identity também foram mantidos, para preservar o segredo local durante a transição. Tudo isso será revisto na Etapa 3, quando esses arquivos forem reescritos.
