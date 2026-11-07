@@ -7,7 +7,7 @@ Plataforma demonstrativa de gestão de solicitações de crédito, desenvolvida 
 - Desenvolver uma aplicação Back-End com ASP.NET Core e APIs REST.
 - Aplicar modelagem de domínio, validação, persistência e testes automatizados.
 - Construir uma interface administrativa com ASP.NET Core MVC e Razor Views.
-- Evoluir gradualmente de um monólito modular para serviços independentes, somente quando houver justificativa.
+- Evoluir gradualmente a arquitetura, mantendo o monólito modular no MVP e estudando serviços independentes em laboratório quando houver justificativa.
 - Demonstrar boas práticas de engenharia, segurança, rastreabilidade e qualidade de software.
 
 ## Escopo funcional do MVP
@@ -48,7 +48,9 @@ A interface administrativa usa MVC server-rendered com Razor Views e Bootstrap 5
 
 Tecnologias de evolução futura, não obrigatórias para o MVP:
 
-- RabbitMQ e MassTransit somente quando houver comunicação assíncrona durável entre processos e uma necessidade comprovada de desacoplamento.
+- Apache Kafka será a tecnologia principal do laboratório educacional de mensageria, sem integração automática ao MVP. RabbitMQ/MassTransit permanecem alternativas a comparar caso um fluxo real justifique broker.
+- PostgreSQL será estudado em laboratório comparativo com SQL Server; SQL Server continua sendo o banco oficial do Credite.
+- MongoDB será estudado em laboratório de modelagem documental, sem persistência paralela no MVP.
 - YARP somente se múltiplos backends criarem uma necessidade real de gateway.
 - Redis para cache, quando houver necessidade medida.
 - Aspire Dashboard standalone opcional para inspeção local de logs, traces e métricas exportados por OTLP (ADR-0011).
@@ -69,7 +71,7 @@ As dependências serão adicionadas conforme a necessidade de cada etapa. Recurs
 
 ## Planejamento e governança
 
-O projeto está em fase de planejamento. A implementação permanece bloqueada até a confirmação da clonagem do repositório e da primeira validação local (restore, build e testes).
+A validação local inicial foi concluída em 2026-11-01: o repositório foi clonado, `Credite.slnx` foi aberto no Visual Studio Community, o SDK .NET 10 foi confirmado e restore, build e testes foram executados com sucesso. Essa etapa não é mais um bloqueio nem deve ser solicitada novamente. O desenvolvimento segue por incrementos pequenos, conforme o roadmap.
 
 - [Governança, regras e Definition of Done](docs/PLANEJAMENTO-E-GOVERNANCA.md)
 - [Roadmap e fases do projeto](docs/ROADMAP.md)
@@ -77,6 +79,7 @@ O projeto está em fase de planejamento. A implementação permanece bloqueada a
 - [Especificação e critérios de aceite do primeiro incremento](docs/PRIMEIRO-INCREMENTO.md)
 - [Automações GitHub recomendadas para .NET](docs/AUTOMACOES-GITHUB-DOTNET.md)
 - [Visão arquitetural e diagramas C4](docs/ARQUITETURA.md)
+- [Plano de aprendizado Back-End C#/.NET](docs/PLANO-DE-APRENDIZADO-BACKEND.md)
 - [Modelo de ADR](docs/adr/0000-template.md)
 - [ADR-0001 — SQL Server e estratégia de persistência](docs/adr/0001-sql-server-e-estrategia-de-persistencia.md)
 - [ADR-0002 — Autenticação, autorização e dados fictícios](docs/adr/0002-autenticacao-autorizacao-e-dados-ficticios.md)
@@ -90,6 +93,7 @@ O projeto está em fase de planejamento. A implementação permanece bloqueada a
 - [ADR-0010 — Interface administrativa MVC e jornadas](docs/adr/0010-interface-administrativa-e-jornadas-mvc.md)
 - [ADR-0011 — Observabilidade e operação local](docs/adr/0011-observabilidade-e-operacao-local.md)
 - [ADR-0012 — Evolução para microserviços e mensageria](docs/adr/0012-evolucao-para-microservicos-e-mensageria.md)
+- [ADR-0013 — Laboratórios de PostgreSQL, MongoDB e Apache Kafka](docs/adr/0013-laboratorios-postgresql-mongodb-kafka.md)
 
 ## Estrutura inicial
 
