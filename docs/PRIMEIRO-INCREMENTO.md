@@ -1,3 +1,5 @@
+> **Aviso de validade (2026-11-07):** esta especificação foi escrita para a arquitetura anterior (Identity integrado ao monólito, SQL Server e cookies compartilhados entre MVC/API). Ela está **suspensa e não deve orientar a implementação atual**. A arquitetura vigente é a do ADR-0014. Reescrever este incremento após a aprovação de ADR-0015, sem apagar este registro histórico.
+
 # Primeiro incremento — Autenticação e autorização interna
 
 - **Estado:** Especificação aprovada
