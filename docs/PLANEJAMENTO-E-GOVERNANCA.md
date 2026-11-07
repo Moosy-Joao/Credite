@@ -2,71 +2,65 @@
 
 ## Estado atual
 
-**Validação inicial concluída; desenvolvimento incremental autorizado conforme especificações e backlog aprovados.**
+A validação local inicial foi concluída em 2026-11-01: clone, abertura de Credite.slnx no Visual Studio Community, SDK .NET 10 e restore/build/test com sucesso. Não solicitar novamente essa validação como bloqueio.
 
-Em 2026-11-01, o responsável confirmou a clonagem do repositório, abertura de `Credite.slnx` no Visual Studio Community, SDK .NET 10 instalado e execução bem-sucedida de restore, build e testes.
+Em 2026-11-07 foi aprovada a arquitetura de quatro microsserviços: Identity, Customer, Credit e Notification. Identity, Customer e Credit terão PostgreSQL independente; Notification terá MongoDB exclusivo. Kafka conecta Credit a Notification, com Outbox em Credit, idempotência, retry limitado e dead-letter topic em Notification.
 
-Essa etapa está encerrada. Não solicitar novamente a confirmação nem tratá-la como bloqueio. Restore, build e testes continuam fazendo parte da validação normal de cada alteração técnica.
+A documentação foi consolidada. O código existente ainda precisa ser auditado e adaptado. Não presumir que a arquitetura já esteja implementada.
 
-O Credite permanece como monólito modular no MVP, com SQL Server como banco oficial. Kafka, PostgreSQL, MongoDB e microsserviços pertencem inicialmente à trilha educacional isolada.
+## Decisões aprovadas
 
-## Princípios de engenharia
+- Quatro serviços: Identity, Customer, Credit e Notification.
+- PostgreSQL por serviço para Identity, Customer e Credit.
+- MongoDB exclusivo para Notification.
+- EF Core 10 + Npgsql nos serviços PostgreSQL.
+- Kafka no fluxo Credit → Notification.
+- Outbox transacional em Credit.
+- Consumidor idempotente, retry limitado e dead-letter topic em Notification.
+- Projetos, namespaces e pastas arquiteturais em inglês; identificadores C# em português.
 
-- Começar simples e evoluir com evidências; não criar microserviços prematuramente.
-- Preservar limites claros entre domínio, aplicação, infraestrutura e apresentação.
-- A interface MVC comunica-se com o backend por HTTP; não acessa bancos diretamente.
-- Regras de negócio não ficam em controllers, views ou infraestrutura.
-- Toda funcionalidade relevante terá critérios de aceite e testes.
-- Dependências externas devem resolver uma necessidade concreta.
-- Preferir recursos nativos do .NET quando forem suficientes.
-- Não usar dados pessoais, financeiros ou credenciais reais.
-- Não simular uma decisão financeira real: regras e resultados são demonstrativos.
-- Decisões arquiteturais relevantes devem ser registradas em ADRs.
-- Cada alteração deve ser pequena, revisável e acompanhada de documentação quando necessário.
+## Decisões pendentes — não presumir
+
+- Protocolo de autenticação/autorização e emissão/validação de credenciais.
+- Comunicação síncrona entre serviços.
+- Contratos REST e políticas de acesso.
+- Integração da interface administrativa: BFF, chamadas diretas, gateway ou outra composição.
+- Necessidade e responsabilidade de API Gateway.
+- Contratos, envelope, tópicos, chaves e versionamento dos eventos.
+- Topologia de implantação e gestão de segredos fora do ambiente local.
+
+Esses pontos pertencem a ADR-0015, cuja elaboração depende de confirmação explícita do responsável. Não criar ADR-0015 nem codificar decisões pendentes sem essa confirmação.
 
 ## Fluxo de trabalho
 
-1. **Backlog de planejamento:** itens ainda não detalhados.
-2. **Em especificação:** requisitos, opções e critérios de aceite em elaboração.
-3. **Decisões pendentes:** questões que exigem decisão explícita.
-4. **Pronto para execução:** especificação aprovada e dependências resolvidas; só pode avançar após o bloqueio inicial ser removido.
-5. **Em andamento:** trabalho autorizado e em execução.
-6. **Validação e revisão:** revisão técnica, testes e documentação.
-7. **Concluído:** critérios de aceite atendidos e evidências registradas.
+1. Planejamento.
+2. Em especificação.
+3. Decisões pendentes.
+4. Pronto para execução.
+5. Em andamento.
+6. Validação e revisão.
+7. Concluído.
 
-## Critérios para um cartão ficar pronto
+## Definition of Ready
 
-- Objetivo e contexto compreensíveis.
-- Escopo incluído e excluído.
-- Dependências e riscos identificados.
-- Critérios de aceite verificáveis.
-- Regras de negócio documentadas.
-- Contratos, modelos ou decisões relevantes descritos.
-- Estratégia de teste definida.
-- Documentação relacionada no repositório.
-- Sem decisão arquitetural crítica em aberto.
+Objetivo, escopo, exclusões, dependências, riscos, critérios verificáveis, contratos e decisões críticas aprovadas.
 
-## Critério de Aceite
+## Definition of Done
 
-Uma tarefa só pode ser concluída quando:
-- todos os critérios de aceite foram atendidos;
-- testes pertinentes foram executados e passaram;
-- compilação não apresenta erros;
-- logs e tratamento de falhas são adequados ao escopo;
-- documentação foi atualizada;
-- não há segredo ou dado real no repositório;
-- revisão final foi realizada.
+Critérios de aceite atendidos; build e testes executados; isolamento de persistência comprovado; logs sem dados sensíveis; documentação atualizada; diff revisado; evidências reais registradas.
 
-## Registro de decisões
+## Regras para agentes de código
 
-Decisões duradouras devem ser registradas em `docs/adr/` usando o modelo `docs/adr/0000-template.md`. Cada ADR deve conter contexto, decisão, alternativas consideradas, consequências e estado (proposta, aceita, substituída ou rejeitada).
+- Começar por auditoria completa da solução, projetos, arquivos, dependências, migrations, testes e workflows.
+- Classificar cada item como manter, adaptar, mover, substituir, remover ou aguardar ADR-0015.
+- Não apagar/recriar arquivos antes de mapear finalidade e dependências.
+- Preservar histórico de ADRs e migrations; propor baseline nova por serviço somente com justificativa.
+- Não fazer substituição global cega de SQL Server por PostgreSQL.
+- Não inventar contratos ou mecanismos pendentes de ADR-0015.
+- Antes de operações destrutivas, apresentar arquivos afetados e justificativa.
+- Não fazer commit, push, merge ou alterar branches sem autorização explícita.
+- Não declarar build/teste aprovado sem executar e apresentar evidências.
 
-## Documentação central
+## Estado documental
 
-- [README](../README.md)
-- [Roadmap](ROADMAP.md)
-- [Automações GitHub para .NET](AUTOMACOES-GITHUB-DOTNET.md)
-- [Template de ADR](adr/0000-template.md)
-- [Plano de aprendizado Back-End C#/.NET](PLANO-DE-APRENDIZADO-BACKEND.md)
-- [ADR-0012 — Evolução para microserviços e mensageria](adr/0012-evolucao-para-microservicos-e-mensageria.md)
-- [ADR-0013 — Laboratórios de PostgreSQL, MongoDB e Apache Kafka](adr/0013-laboratorios-postgresql-mongodb-kafka.md)
+ADR-0014 é normativo para os limites dos quatro serviços, ownership dos bancos e fluxo Credit → Notification. ADR-0001, ADR-0012 e ADR-0013 permanecem no histórico como decisões substituídas nos pontos indicados. ADR-0015 depende de confirmação explícita.

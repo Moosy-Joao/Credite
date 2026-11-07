@@ -1,134 +1,53 @@
 # Roadmap do Credite
 
-Este roadmap orienta a evolução do produto e a formação prática em Back-End C#/.NET. A validação local inicial foi concluída em 2026-11-01; não é mais pré-requisito pendente. O MVP continua como monólito modular em .NET 10, com SQL Server. Laboratórios de PostgreSQL, MongoDB, Kafka e microsserviços são trilhas isoladas e não ampliam automaticamente o escopo do produto.
+## Estado
+- Fase 0 — validação local: concluída em 2026-11-01.
+- Arquitetura de quatro microsserviços: aprovada em 2026-11-07.
+- Documentação arquitetural: consolidada.
+- Auditoria e reestruturação do código: próxima etapa.
+- ADR-0015: aguarda confirmação explícita.
 
-## Fase 0 — Preparação e verificação local
+## Fase 0 — validação local (concluída)
 
-**Status: concluída em 2026-11-01 pelo responsável.**
+Clone, abertura de Credite.slnx no Visual Studio Community, SDK .NET 10 e restore/build/test foram confirmados com sucesso. Não repetir essa etapa.
 
-- [x] Clonar o repositório.
-- [x] Abrir `Credite.slnx` no Visual Studio Community.
-- [x] Verificar SDK .NET 10 instalado.
-- [x] Executar restore.
-- [x] Executar build.
-- [x] Executar testes.
-- [x] Registrar a conclusão.
-- [x] Confirmar explicitamente a conclusão.
+## Fase 1 — auditoria e reestruturação
 
-Não solicitar novamente essa validação como bloqueio. Reexecutar restore/build/test quando uma alteração técnica justificar, como parte normal do ciclo de desenvolvimento.
+1. Inventariar projetos, namespaces, arquivos, dependências, endpoints, migrations, testes, Docker e workflows.
+2. Classificar o legado: manter, adaptar, mover, substituir, remover ou aguardar ADR-0015.
+3. Organizar projetos em inglês para Identity, Customer, Credit e Notification.
+4. Separar PostgreSQL, DbContext e migrations para Identity, Customer e Credit.
+5. Configurar MongoDB exclusivo do Notification.
+6. Implementar Outbox em Credit e Kafka Credit → Notification com consumidor idempotente.
+7. Atualizar testes, CI, configuração local e documentação.
+8. Executar restore, build e testes após cada etapa.
 
-## Fase 1 — Visão e requisitos
+Não implementar autenticação distribuída, comunicação síncrona, Gateway ou integração final da interface antes de ADR-0015. Não apagar histórico sem plano aprovado.
 
-- [ ] Definir personas e atores.
-- [ ] Definir problema, objetivos e limites do produto.
-- [ ] Definir casos de uso e jornadas.
-- [ ] Definir requisitos funcionais e não funcionais.
-- [ ] Definir vocabulário do domínio.
-- [ ] Definir escopo do MVP e itens fora do escopo.
-- [ ] Definir critérios de aceite por fluxo.
+## Fase 2 — contratos e segurança (após ADR-0015)
 
-## Fase 2 — Domínio e regras
+Definir protocolo de autenticação/autorização, comunicação síncrona, contratos REST, integração da interface, eventual Gateway e contratos/eventos completos.
 
-- [ ] Mapear entidades, value objects e agregados candidatos.
-- [ ] Definir estados e transições de uma solicitação.
-- [ ] Definir invariantes e regras de validação.
-- [ ] Definir cálculo demonstrativo de parcelas e juros.
-- [ ] Definir trilha de auditoria e histórico.
-- [ ] Definir idempotência e duplicidade de solicitações.
-- [ ] Documentar exemplos e casos-limite.
+## Fase 3 — implementação funcional dos serviços
 
-## Fase 3 — Arquitetura e decisões técnicas
+- Identity: contas internas, credenciais e perfis.
+- Customer: clientes fictícios.
+- Credit: solicitações, estados, avaliações, simulação e histórico.
+- Notification: consumo de eventos e notificações demonstrativas.
+- Persistência isolada, testes, segurança, health checks e observabilidade.
 
-- [x] Aprovar monólito modular inicial (ADR-0005 e ADR-0012).
-- [ ] Definir dependências permitidas entre camadas.
-- [ ] Definir contratos REST e convenções HTTP.
-- [ ] Definir persistência e estratégia de migrations.
-- [x] Definir SQL Server como banco oficial do Credite (ADR-0001).
-- [ ] Criar laboratório comparativo de PostgreSQL, sem substituir o banco principal.
-- [ ] Definir autenticação, autorização e gestão de segredos.
-- [ ] Definir estratégia de testes.
-- [ ] Definir logging, métricas, tracing e health checks.
-- [ ] Definir estratégia de configuração e ambientes.
-- [ ] Definir estratégia de versionamento e compatibilidade de API.
+## Fase 4 — integração assíncrona
 
-## Fase 4 — Experiência administrativa
+Validar Outbox, publicação Kafka, consumo idempotente, retry limitado, dead-letter topic, duplicidade, indisponibilidade do broker, reinício do publicador e redrive.
 
-- [ ] Mapear telas e navegação.
-- [ ] Definir responsabilidades da aplicação MVC.
-- [ ] Definir ViewModels e estados de interface.
-- [ ] Definir acessibilidade e feedback de erros.
-- [x] Definir comunicação HTTP entre MVC e API; Gateway não faz parte do MVP (ADR-0010 e ADR-0012).
-- [ ] Definir limites entre apresentação e regras de negócio.
+## Fase 5 — interface e fluxo vertical
 
-## Fase 5 — Operação e produtividade
+Integrar a interface conforme ADR-0015 e demonstrar o fluxo de cliente, solicitação, avaliação demonstrativa e notificação.
 
-- [ ] Revisar CI já existente e validar execução.
-- [ ] Definir política de branches e pull requests.
-- [ ] Definir templates de issue e pull request.
-- [ ] Definir EditorConfig e regras de formatação.
-- [ ] Avaliar Dependabot para NuGet e GitHub Actions.
-- [ ] Avaliar CodeQL e secret scanning.
-- [ ] Definir Docker Compose e ambientes locais.
-- [ ] Definir observabilidade e diagnóstico.
-- [ ] Definir política de releases e changelog.
+## Fase 6 — qualidade e portfólio
 
-## Fase 6 — Laboratório de Apache Kafka
+Testes unitários, integração e contrato; CI; Docker Compose; observabilidade; documentação operacional; revisão de segurança e privacidade.
 
-**Trilha educacional isolada; não integra o MVP.**
+## Critérios de conclusão
 
-- [ ] Entender broker, topics, partitions, offsets e consumer groups.
-- [ ] Implementar producer e consumer em .NET.
-- [ ] Definir contratos de eventos versionados e chaves de particionamento.
-- [ ] Demonstrar processamento idempotente e tratamento de duplicidade.
-- [ ] Implementar política limitada de retry e dead-letter topic.
-- [ ] Exercitar reprocessamento, falhas de consumidor e evolução de contratos.
-- [ ] Estudar Transactional Outbox depois de dominar transações e publicação de eventos.
-- [ ] Documentar garantias de entrega e limitações; não prometer exactly-once sem comprovação.
-
-## Fase 7 — Laboratórios de bancos de dados
-
-**Laboratórios isolados; SQL Server continua sendo o banco do Credite.**
-
-### PostgreSQL
-- [ ] Reproduzir um caso relacional do Credite em laboratório.
-- [ ] Comparar tipos, constraints, índices, transações e concorrência com SQL Server.
-- [ ] Exercitar consultas e análise de planos de execução.
-- [ ] Comparar o comportamento dos providers do EF Core.
-
-### MongoDB
-- [ ] Modelar um caso de uso documental independente.
-- [ ] Comparar embedding e referencing.
-- [ ] Exercitar filtros, índices, atualizações atômicas e validação de documentos.
-- [ ] Documentar quando o modelo documental é adequado ou inadequado para o domínio.
-
-## Fase 8 — Arquitetura distribuída e microsserviços
-
-**Somente após domínio, API, persistência, testes e laboratório Kafka.**
-
-- [ ] Identificar limites de contexto estáveis e capacidades de negócio autônomas.
-- [ ] Selecionar um cenário pequeno para extração demonstrativa.
-- [ ] Definir ownership de dados e contratos HTTP/eventos.
-- [ ] Implementar tratamento de timeout, falhas parciais, retry e idempotência.
-- [ ] Demonstrar consistência eventual; estudar Outbox e Saga quando aplicáveis.
-- [ ] Instrumentar logs, métricas e tracing distribuído.
-- [ ] Comparar custo operacional com o monólito modular.
-- [ ] Registrar a extração em ADR próprio; não decompor por entidade ou por modismo.
-
-## Critério para liberar construção
-
-A construção só começa quando:
-1. Fases de requisitos, domínio e arquitetura tiverem especificações aprovadas para o primeiro incremento.
-2. Decisões essenciais estiverem registradas.
-3. Critérios de aceite e testes do primeiro incremento estiverem definidos.
-4. A Fase 0 estiver confirmada como concluída pelo responsável.
-
-## Escopo inicial candidato
-
-A confirmar durante a especificação:
-- cadastro de clientes fictícios;
-- registro e consulta de solicitações;
-- simulação demonstrativa de condições;
-- avaliação por regras fictícias;
-- histórico de estados e notificações simuladas.
-
-O escopo final do MVP será registrado após análise dos requisitos, não presumido por este documento.
+Quatro serviços implementados; persistência exclusiva por serviço; fluxo Credit → Kafka → Notification resiliente; interface integrada conforme decisão aprovada; testes e CI passando; documentação fiel ao código; dados fictícios e limitações educacionais explícitos.
