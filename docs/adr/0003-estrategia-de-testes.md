@@ -1,3 +1,5 @@
+> **Nota de revisão (2026-11-07):** esta ADR foi escrita para testes de persistência com SQL Server no monólito. Com ADR-0014, atualizar a estratégia para PostgreSQL descartável nos serviços Identity, Customer e Credit, MongoDB descartável no Notification e testes de integração Kafka no fluxo Credit → Notification. Preservar os princípios gerais de testes unitários/integração e revisar módulos, containers e CI durante a reestruturação.
+
 # ADR-0003 — Estratégia de testes automatizados
 
 - **Estado:** Aceita

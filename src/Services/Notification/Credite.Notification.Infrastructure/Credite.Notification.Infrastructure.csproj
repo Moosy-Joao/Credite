@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="../Credite.Notification.Application/Credite.Notification.Application.csproj" />
+  </ItemGroup>
+
+</Project>

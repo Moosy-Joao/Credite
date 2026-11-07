@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="../Credite.Credit.Application/Credite.Credit.Application.csproj" />
+    <ProjectReference Include="../Credite.Credit.Domain/Credite.Credit.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,256 +1,127 @@
 # Arquitetura do Credite
 
-- **Estado:** Especificação consolidada
-- **Atualização:** 2026-11-01
-- **Decisões normativas:** ADR-0001 a ADR-0012
-- **Escopo:** arquitetura lógica e runtime do MVP; não representa infraestrutura implantada nem comprova que todos os projetos já existem/compilam.
+- Estado: arquitetura-alvo aprovada em 2026-11-07.
+- Decisão normativa: ADR-0014.
+- Pendências: ADR-0015, mediante confirmação explícita.
+- Este documento não afirma que os serviços já estejam implementados ou implantados.
 
-Este documento reúne a visão arquitetural aprovada e os diagramas de referência. Quando houver divergência, os ADRs específicos prevalecem para a decisão detalhada. Os diagramas devem ser atualizados junto com mudanças de arquitetura.
+## 1. Visão geral
 
-## 1. Resumo executivo
+O Credite será composto por quatro microsserviços: Identity, Customer, Credit e Notification. Cada serviço terá responsabilidade delimitada, processo próprio e ownership exclusivo de persistência.
 
-O Credite é uma aplicação administrativa educacional para gestão de clientes e solicitações de crédito fictícias. O MVP utiliza um **monólito modular**, com dois hosts ASP.NET Core: uma interface MVC server-rendered e uma API REST. Os módulos de negócio são executados dentro do processo da API; SQL Server é a persistência relacional; Identity administra contas internas.
+Identity, Customer e Credit utilizarão PostgreSQL, cada um com banco próprio. Notification utilizará exclusivamente MongoDB. Apache Kafka realizará o fluxo assíncrono aprovado entre Credit e Notification.
 
-A interface MVC comunica-se exclusivamente com a API por HTTP. Não possui DbContext nem acesso direto ao banco. A API autentica e autoriza cada operação protegida, mesmo quando a chamada se origina do MVC. A solução não contém microserviços, broker, API Gateway ou cache distribuído no MVP.
+A interface administrativa .NET permanece como cliente da plataforma, não como quinto microsserviço de negócio. Não acessa bancos diretamente.
 
-## 2. Diagrama C4 — Nível 1: contexto do sistema
+## 2. Limites e ownership
 
-Mostra os atores e os sistemas externos ao Credite. Os atores são usuários internos; clientes fictícios são registros de negócio e não acessam o sistema.
-
-```mermaid
-flowchart LR
-    Admin["Pessoa: Administrador\nGerencia contas e perfis"]
-    Operator["Pessoa: Operador\nMantém clientes e solicitações"]
-    Analyst["Pessoa: Analista\nExecuta avaliações demonstrativas"]
-    Credite["Sistema: Credite\nPlataforma administrativa fictícia"]
-    SQL["Sistema externo ao limite lógico\nSQL Server gerenciado pelo ambiente\nPersistência relacional"]
-    
-    Admin -->|"HTTPS: administra contas e consulta operações"| Credite
-    Operator -->|"HTTPS: cadastra clientes e solicitações"| Credite
-    Analyst -->|"HTTPS: consulta e avalia solicitações"| Credite
-    Credite -->|"TDS/SQL via EF Core"| SQL
-```
-
-**Leitura:** os três perfis usam a mesma aplicação, com capacidades diferentes. O banco é uma dependência técnica do sistema, não um sistema de negócio independente. Não existem integrações com bancos, birôs de crédito, meios de pagamento ou serviços financeiros externos.
-
-## 3. Diagrama C4 — Nível 2: containers
-
-Neste projeto, container significa aplicação executável ou armazenamento de dados, não necessariamente Docker.
-
-```mermaid
-flowchart TB
-    Browser["Navegador do usuário"]
-    subgraph Credite["Sistema Credite"]
-        Web["Container: Credite.Web\nASP.NET Core MVC / Razor Views\nBootstrap 5.3\nHost server-rendered"]
-        Api["Container: Credite.Api\nASP.NET Core Web API\nControllers / composição / autorização"]
-        Database[("Container: CrediteDb\nMicrosoft SQL Server\nDados de negócio + ASP.NET Core Identity")]
-    end
-    KeyRing["Armazenamento protegido de chaves\nASP.NET Core Data Protection"]
-    Dashboard["Ferramenta local opcional\nAspire Dashboard standalone"]
-
-    Browser -->|"HTTPS: páginas, formulários e cookie"| Web
-    Web -->|"HTTP(S): chamadas API; encaminha cookie autenticado"| Api
-    Api -->|"EF Core 10 / SqlClient"| Database
-    Web -.->|"Lê/usa chaveiro compartilhado"| KeyRing
-    Api -.->|"Lê/usa chaveiro compartilhado"| KeyRing
-    Web -.->|"OTLP opcional"| Dashboard
-    Api -.->|"OTLP opcional"| Dashboard
-```
-
-### Containers e responsabilidades
-
-| Container | Responsabilidade | Tecnologia | Persistência/acesso |
+| Serviço | Responsabilidade | Dados próprios | Persistência |
 |---|---|---|---|
-| Credite.Web | Interface administrativa, autenticação de navegação, ViewModels e chamadas HTTP | ASP.NET Core MVC, Razor Views, Bootstrap 5.3 | Sem acesso ao SQL Server |
-| Credite.Api | Contratos REST, autenticação/autorização de backend, execução de casos de uso e composição | ASP.NET Core Web API | Acesso a SQL Server por Infrastructure |
-| CrediteDb | Persistência de clientes, solicitações, avaliações, histórico e Identity | SQL Server + EF Core 10 | Único banco do MVP |
-| Aspire Dashboard | Visualização local opcional de logs, métricas e traces | Aspire Dashboard standalone / OTLP | Não é dependência de runtime; sem retenção de produção |
-
-O armazenamento das chaves Data Protection precisa ser compartilhado e protegido nos dois hosts, com configuração consistente de esquema, nome de cookie e nome da aplicação. O mecanismo concreto de armazenamento varia por ambiente: desenvolvimento local pode usar diretório protegido compartilhado; outros ambientes devem usar armazenamento persistente e protegido apropriado. Não versionar chaves.
-
-O diagrama mostra a arquitetura lógica, não fixa portas, nomes de contêiner Docker, hostnames ou topologia de implantação. Esses detalhes pertencem à configuração do ambiente, não a esta arquitetura.
-
-## 4. Diagrama C4 — Nível 3: componentes do container API
-
-```mermaid
-flowchart TB
-    Client["Credite.Web / cliente HTTP"]
-    subgraph API["Credite.Api — ASP.NET Core"]
-        Controllers["Controllers + filtros\n[ApiController] / DTOs HTTP"]
-        Auth["Autenticação e autorização\nIdentity cookie / policies"]
-        Composition["Composition Root\nProgram.cs / DI"]
-        App["Credite.Application\nCasos de uso / validações de aplicação\ninterfaces de persistência"]
-        Domain["Credite.Domain\nCustomer / CreditRequest\nAssessment / invariantes"]
-        Infra["Credite.Infrastructure\nEF Core / Identity stores\nimplementações de persistência"]
-    end
-    DB[("SQL Server")]
-
-    Client -->|"HTTP"| Controllers
-    Controllers --> Auth
-    Controllers -->|"invoca casos de uso"| App
-    Composition -.->|"registra"| App
-    Composition -.->|"registra"| Infra
-    App -->|"usa conceitos e regras"| Domain
-    Infra -->|"implementa abstrações da Application"| App
-    Infra -->|"persiste e consulta"| Domain
-    Infra -->|"EF Core 10"| DB
-```
-
-**Dependências de compilação entre projetos** (seta significa “referencia”):
-
-```mermaid
-flowchart BT
-    Domain["Credite.Domain"]
-    Application["Credite.Application"]
-    Infrastructure["Credite.Infrastructure"]
-    Contracts["Credite.Contracts"]
-    Api["Credite.Api"]
-    Web["Credite.Web"]
-
-    Application --> Domain
-    Infrastructure --> Application
-    Infrastructure --> Domain
-    Api --> Application
-    Api --> Infrastructure
-    Api --> Contracts
-    Web --> Contracts
-```
+| Identity | Contas internas, credenciais, perfis e identidade | Usuários, credenciais, roles | PostgreSQL |
+| Customer | Cadastro e manutenção de clientes fictícios | Dados cadastrais e regras de cliente | PostgreSQL |
+| Credit | Solicitações, estados, avaliações demonstrativas, simulações e histórico | Solicitações, avaliações, histórico e Outbox | PostgreSQL |
+| Notification | Consumo de eventos e notificações demonstrativas | Registros de notificação e deduplicação | MongoDB |
 
 Regras obrigatórias:
+- Um serviço é a única autoridade de leitura/escrita sobre seus dados.
+- Nenhum serviço consulta ou altera diretamente o banco de outro.
+- Não compartilhar tabelas, schemas, DbContexts, migrations, entidades de persistência ou transações.
+- Referências entre serviços utilizam identificadores e contratos.
+- Transações ACID são locais ao banco de cada serviço.
+- Cada serviço evolui seu schema/documentos independentemente.
+- Identity, Customer e Credit usam EF Core 10 + Npgsql em versões estáveis compatíveis com .NET 10.
+- Notification usa o driver oficial MongoDB .NET em versão estável compatível.
 
-- Domain não referencia nenhum projeto da solução ou framework de infraestrutura.
-- Application referencia Domain e define abstrações necessárias aos casos de uso.
-- Infrastructure referencia Application e Domain e implementa persistência/serviços técnicos.
-- API referencia Application, Infrastructure e Contracts; Infrastructure é utilizada na raiz de composição, não diretamente por Controllers.
-- Web referencia Contracts entre os projetos internos e não referencia Domain, Application ou Infrastructure.
-- Contracts contém DTOs HTTP explícitos; não contém entidades de domínio, regras de negócio, ViewModels ou tipos do EF Core.
-- Testes unitários exercitam Domain/Application sem infraestrutura externa; testes de integração exercitam API, Identity e SQL Server conforme ADR-0003.
+## 3. Fluxo aprovado Credit → Kafka → Notification
 
-A seta de Infrastructure para Application no diagrama de componentes indica implementação de abstrações definidas pela Application (dependência de compilação). O fluxo de execução de um caso de uso chama a abstração; a implementação concreta é resolvida por injeção de dependência na raiz de composição da API.
+1. Credit altera o estado de negócio.
+2. Na mesma transação PostgreSQL, grava o evento pendente na Outbox.
+3. Um publicador recuperável envia eventos pendentes ao Kafka.
+4. Após confirmação de publicação, atualiza o estado da Outbox.
+5. Notification consome e persiste o resultado no MongoDB.
+6. O consumidor é idempotente, pois mensagens podem ser entregues mais de uma vez.
+7. Falhas transitórias recebem retry limitado; mensagens não processadas são encaminhadas para dead-letter topic.
 
-## 5. Componentes do container Web
+A garantia prática é entrega pelo menos uma vez, Outbox recuperável e idempotência. Não prometer exactly-once ponta a ponta. Nome, versão, envelope, payload, tópicos, partições, chaves e retenção dos eventos devem ser definidos antes de implementar os contratos.
 
-A aplicação MVC é um cliente HTTP server-rendered:
+## 4. Comunicação ainda não decidida
 
-- **MVC Controllers:** recebem requisições de páginas, aplicam políticas de interface e coordenam serviços de apresentação.
-- **ViewModels:** modelos próprios de telas e formulários; nunca entidades de domínio ou entidades EF Core.
-- **Razor Views:** renderizam HTML, formulários e estados de página.
-- **API clients/services:** encapsulam chamadas HTTP tipadas/nomeadas, serialização, timeout e tradução de Problem Details.
-- **Authentication/Data Protection:** valida o cookie compartilhado e encaminha a identidade autenticada à API no request HTTP conforme ADR-0002.
-- **Antiforgery:** protege formulários MVC que alteram estado.
+A comunicação síncrona entre Identity, Customer e Credit não foi definida. Não presumir chamadas HTTP, eventos adicionais, BFF, API Gateway, YARP ou acesso direto da interface aos serviços. Esses pontos dependem de ADR-0015 e confirmação explícita.
 
-A Web não implementa regras de negócio, não consulta SQL Server e não contorna a API. A ocultação de itens de navegação por perfil melhora a experiência, mas a API continua sendo a autoridade final de autorização.
+## 5. Persistência
 
-## 6. Módulos de negócio
+### PostgreSQL — Identity, Customer e Credit
+- Banco independente por serviço.
+- DbContext, connection string, configurações e migrations independentes.
+- EF Core 10 com Npgsql.
+- Migrations versionadas, explícitas e revisáveis; não aplicar automaticamente em produção.
+- Tabelas e colunas em português com snake_case.
+- Sem banco ou schema compartilhado.
 
-Os módulos são limites lógicos dentro do monólito, não processos ou projetos independentes.
+### MongoDB — Notification
+- Banco e coleções exclusivos do serviço.
+- Modelagem orientada às consultas e ao ciclo de vida das notificações.
+- Identificador estável de evento/mensagem e mecanismo persistente de deduplicação.
+- Não replicar dados de Customer/Credit além do mínimo necessário ao evento.
 
-| Módulo | Responsabilidade no MVP | Conceitos principais |
-|---|---|---|
-| Customer | Cadastro, consulta e manutenção de clientes fictícios | Customer |
-| Credit | Solicitações, estados, avaliações demonstrativas e histórico | CreditRequest, Assessment, CreditRequestHistoryEntry |
-| Identity / Access | Contas internas, perfis e autorização | ASP.NET Core Identity, roles e policies |
+## 6. Segurança e identidade
 
-A simulação Price é uma capacidade interna do módulo Credit no MVP. Risk Analysis não é um serviço autônomo. Notification ainda não é um contexto funcional aprovado. A extração futura depende dos critérios do ADR-0012.
+Identity é dono dos dados de identidade. O protocolo de autenticação, emissão/validação de credenciais, sessão da interface e autorização entre serviços ainda não foi aprovado.
 
-## 7. Diagrama dinâmico — fluxo vertical principal
+Não presumir compartilhamento de cookies do monólito anterior nem introduzir JWT, OAuth 2.0, OpenID Connect, API Gateway ou outro mecanismo sem ADR-0015. Cada serviço deverá validar autorização no seu limite de confiança conforme a decisão futura.
 
-Fluxo de referência para criar uma solicitação e registrar uma avaliação. Os detalhes dos campos e validações seguem os requisitos do MVP e os ADRs de domínio/simulação.
+## 7. Interface administrativa
 
-```mermaid
-sequenceDiagram
-    actor Operator as Operador
-    participant Browser as Navegador
-    participant Web as Credite.Web
-    participant API as Credite.Api
-    participant App as Application
-    participant Domain as Domain
-    participant DB as SQL Server
+A interface .NET existente permanece cliente da plataforma. Não possui persistência própria nem regras de domínio. A forma de integração com Identity, Customer e Credit (BFF, chamadas diretas, gateway ou outra composição) depende de ADR-0015.
 
-    Operator->>Browser: Preenche formulário de solicitação
-    Browser->>Web: POST com antiforgery e cookie
-    Web->>API: HTTP com cookie autenticado
-    API->>API: Valida autenticação e autorização
-    API->>App: Executa caso de uso
-    App->>Domain: Cria CreditRequest
-    Domain-->>App: Agregado válido em PendingAnalysis
-    App->>DB: Persiste solicitação e histórico
-    DB-->>App: Commit
-    App-->>API: Resultado do caso de uso
-    API-->>Web: 201 Created / DTO
-    Web-->>Browser: Redirect (Post/Redirect/Get)
-    Browser-->>Operator: Exibe confirmação
-```
+## 8. Observabilidade e testes
 
-A execução da simulação segue a mesma fronteira: o Analista envia um comando; a API autoriza; Application solicita a operação de domínio; a avaliação demonstrativa é registrada como snapshot imutável junto do histórico, preservando avaliações anteriores conforme ADR-0008 e ADR-0009. O sistema não produz decisão financeira real.
+Cada serviço deve ter health checks, logs estruturados e correlação. OpenTelemetry deve cobrir chamadas HTTP e mensagens Kafka quando implementadas. Nunca registrar senhas, tokens, cookies, connection strings ou dados pessoais.
 
-## 8. Persistência e transações
+Testes:
+- unitários por serviço;
+- integração com PostgreSQL descartável para Identity, Customer e Credit;
+- integração com MongoDB descartável para Notification;
+- fluxo Kafka Credit → Notification;
+- Outbox, duplicidade, idempotência, retry, dead-letter e recuperação;
+- contratos REST/eventos após sua aprovação.
 
-- SQL Server é o banco relacional aprovado (ADR-0001).
-- EF Core 10 usa Code First; DbContext, configurações e migrations ficam em Infrastructure.
-- Migrations e snapshots são versionados.
-- A aplicação de migrations é explícita; API não executa migrations automaticamente na inicialização.
-- Customer e CreditRequest são agregados independentes; CreditRequest referencia Customer por CustomerId.
-- No MVP, os módulos compartilham SQL Server e podem utilizar transações locais quando um caso de uso exigir atomicidade.
-- Avaliações anteriores e entradas de histórico não podem ser sobrescritas silenciosamente.
-- Não há banco por módulo, CQRS distribuído, event sourcing ou Outbox no MVP.
+## 9. Convenções de nomenclatura
 
-## 9. Segurança e confiança
+Projetos, namespaces e pastas arquiteturais em inglês. Identificadores C# em português, seguindo PascalCase/camelCase, prefixo I para interfaces e sufixo Async para métodos assíncronos. Banco em português snake_case. Testes e documentação em português. Tipos oficiais do .NET e termos técnicos permanecem em inglês.
 
-- ASP.NET Core Identity administra contas internas; não há registro público de contas.
-- Roles iniciais: Administrador, Analista e Operador.
-- Autorização de negócio é aplicada pela API; MVC não é fronteira de segurança suficiente.
-- Cookies compartilhados e Data Protection seguem ADR-0002; HTTPS, Secure, HttpOnly, SameSite e antiforgery conforme o fluxo.
-- Segredos locais via User Secrets; demais ambientes via variáveis de ambiente ou secret manager.
-- Somente dados e credenciais fictícios/demonstrativos. Nunca registrar ou persistir dados reais de pessoas ou dados financeiros reais.
-- Health endpoints, logs e telemetria não devem expor segredos nem detalhes internos a clientes não autorizados.
-- OWASP ASVS 5.0.0 nível 1 é checklist de referência aplicável, sem declaração de certificação/conformidade.
+## 10. Diagrama de arquitetura aprovada
 
-## 10. Observabilidade e saúde
+~~~mermaid
+flowchart LR
+    Usuario["Usuário interno"] --> Web["Interface administrativa .NET"]
+    Web -. "integração pendente ADR-0015" .-> Identity["Identity"]
+    Web -. "integração pendente ADR-0015" .-> Customer["Customer"]
+    Web -. "integração pendente ADR-0015" .-> Credit["Credit"]
+    Identity --> PGI[("PostgreSQL Identity")]
+    Customer --> PGC[("PostgreSQL Customer")]
+    Credit --> PGL[("PostgreSQL Credit + Outbox")]
+    Credit -->|"Outbox"| Kafka[("Apache Kafka")]
+    Kafka -->|"consumo idempotente"| Notification["Notification"]
+    Notification --> Mongo[("MongoDB Notification")]
+~~~
 
-- `ILogger<T>` para logs estruturados; sem senhas, cookies, tokens, connection strings ou conteúdo sensível.
-- OpenTelemetry para logs, métricas e traces, com OTLP opcional.
-- Propagação W3C Trace Context em chamadas Web → API e dependências instrumentadas.
-- Aspire Dashboard standalone é opcional para visualização local, não plataforma de produção.
-- API: `/health/live` (processo) e `/health/ready` (dependências necessárias, incluindo SQL Server); `/health` permanece alias compatível da readiness.
-- Web: `/health/live`; sem acesso direto ao banco.
-- Detalhamento normativo: ADR-0011.
+O diagrama não define protocolo de autenticação, chamadas síncronas, gateway ou topologia de produção.
 
-## 11. Testes e qualidade
+## 11. Histórico de decisões
 
-- Unitários: Domain e Application, sem SQL Server nem serviços externos.
-- Integração: API/HTTP, Identity, autorização, EF Core, migrations e SQL Server real descartável, preferencialmente via Testcontainers.
-- Web: testar integração com API e tratamento de respostas/erros; validar antiforgery e jornadas principais.
-- Não substituir SQL Server por EF Core InMemory ou SQLite nos testes de persistência.
-- CI executa restore, build, testes unitários e de integração; integração exige Docker e banco descartável.
-- WCAG 2.2 AA é objetivo para jornadas principais da interface; requer revisão manual além de ferramentas automáticas.
+- ADR-0001 (SQL Server) substituído por ADR-0014.
+- ADR-0005 (arquitetura de implantação monolítica) substituído nos pontos conflitantes.
+- ADR-0012 (monólito modular como arquitetura-alvo) substituído.
+- ADR-0013 (PostgreSQL, MongoDB e Kafka apenas como laboratórios) parcialmente substituído.
+- ADR-0002, ADR-0010 e ADR-0011 precisam ser revisados quanto às premissas de autenticação, interface e operação distribuída. Preservar histórico.
+- ADR-0015 tratará integração da interface, autenticação/autorização, comunicação síncrona e eventual Gateway, somente após confirmação.
 
-## 12. Implantação e execução local
+## Referências
 
-A topologia inicial é composta por dois hosts .NET e SQL Server. Durante desenvolvimento, os hosts podem ser iniciados pelo Visual Studio Community; SQL Server pode ser local ou em contêiner conforme a configuração de desenvolvimento/teste. Docker Compose é auxiliar para dependências, não requisito para a arquitetura lógica.
-
-Não está definido um ambiente de produção, domínio, provedor cloud, orquestrador, política de escalabilidade, alta disponibilidade ou SLA. Não inferir esses itens a partir dos diagramas. A implantação futura precisa especificar armazenamento persistente de Data Protection, TLS, segredos, banco, backup/restore, health probes e destino de telemetria.
-
-## 13. Decisões relacionadas
-
-- ADR-0001 — SQL Server e persistência.
-- ADR-0002 — Autenticação, autorização e dados fictícios.
-- ADR-0003 — Estratégia de testes.
-- ADR-0004 — Contratos REST, erros e convenções HTTP.
-- ADR-0005 — Arquitetura inicial e limites entre camadas.
-- ADR-0006 — Requisitos não funcionais e qualidade.
-- ADR-0007 — Visão do produto, atores e limites.
-- ADR-0008 — Modelagem do domínio e ciclo de vida.
-- ADR-0009 — Simulação demonstrativa e avaliação.
-- ADR-0010 — Interface administrativa MVC.
-- ADR-0011 — Observabilidade e operação local.
-- ADR-0012 — Evolução para microserviços e mensageria.
-
-## 14. Referências
-
-- [C4 Model — Diagrams](https://c4model.com/diagrams)
-- [C4 Model — Notation](https://c4model.com/diagrams/notation)
-- [Microsoft — Common web application architectures and Clean Architecture](https://learn.microsoft.com/dotnet/architecture/modern-web-apps-azure/common-web-application-architectures)
-- [GitHub Docs — Creating diagrams with Mermaid](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/creating-diagrams)
-- [Microsoft — Share authentication cookies between ASP.NET Core apps](https://learn.microsoft.com/aspnet/core/security/cookie-sharing)
-- ADR-0001 a ADR-0012.
+- [Microsoft — Microservices architecture style](https://learn.microsoft.com/azure/architecture/guide/architecture-styles/microservices)
+- [Microsoft — Data sovereignty per microservice](https://learn.microsoft.com/dotnet/architecture/microservices/architect-microservice-container-applications/data-sovereignty-per-microservice)
+- [Npgsql — EF Core Provider](https://www.npgsql.org/efcore/)
+- [MongoDB — .NET/C# Driver](https://www.mongodb.com/docs/drivers/csharp/current/)
+- [Apache Kafka Documentation](https://kafka.apache.org/documentation/)
+- [Confluent.Kafka .NET client](https://docs.confluent.io/kafka-clients/dotnet/current/overview.html)

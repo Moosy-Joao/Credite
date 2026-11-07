@@ -1,3 +1,5 @@
+> **Nota de validade (2026-11-07):** esta ADR descreve a arquitetura anterior de monólito modular e projetos em camadas. ADR-0014 substitui suas decisões de implantação, decomposição e ownership de persistência pelos quatro microsserviços Identity, Customer, Credit e Notification. Conceitos de separação de responsabilidades e dependências internas podem ser reaproveitados dentro de cada serviço, mas não manter a antiga composição monolítica como arquitetura-alvo. Revisar estrutura e referências durante a reestruturação.
+
 # ADR-0005 — Arquitetura inicial e limites entre camadas
 
 - **Estado:** Aceita

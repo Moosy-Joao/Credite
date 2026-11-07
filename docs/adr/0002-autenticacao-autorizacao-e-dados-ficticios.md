@@ -1,3 +1,5 @@
+> **Nota de revisão (2026-11-07):** esta ADR foi escrita para o monólito com SQL Server e cookies compartilhados entre MVC/API. Identity agora é um microsserviço independente, dono de PostgreSQL próprio. As decisões sobre protocolo de autenticação, sessão da interface e autorização entre serviços ainda não foram aprovadas; não implementar as premissas de compartilhamento de cookies sem ADR-0015. Preservar o restante como histórico/requisitos de segurança, e revisar após a aprovação de ADR-0015.
+
 # ADR-0002 — Autenticação, autorização e dados fictícios
 
 - **Status:** Aceita
