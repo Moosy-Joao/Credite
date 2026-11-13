@@ -1,6 +1,7 @@
 using Credite.Credit.Api.Dados;
 using Credite.Credit.Api.Dominio;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace Credite.Credit.Api.Endpoints;
 
@@ -51,7 +52,18 @@ public static class ClientesEndpoints
                 ["cliente"] = [excecao.Message]
             });
         }
+        catch (DbUpdateException excecao) when (EhEmailDuplicado(excecao))
+        {
+            return Results.Conflict(new { mensagem = "Já existe um cliente com esse e-mail." });
+        }
     }
+
+    private static bool EhEmailDuplicado(DbUpdateException excecao) =>
+        excecao.InnerException is PostgresException
+        {
+            SqlState: PostgresErrorCodes.UniqueViolation,
+            ConstraintName: "ix_clientes_email"
+        };
 
     private static async Task<IResult> ConsultarPorId(
         Guid id,
