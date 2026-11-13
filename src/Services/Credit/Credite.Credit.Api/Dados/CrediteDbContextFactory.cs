@@ -7,8 +7,11 @@ public sealed class CrediteDbContextFactory : IDesignTimeDbContextFactory<Credit
 {
     public CrediteDbContext CreateDbContext(string[] args)
     {
+        var conexao = Environment.GetEnvironmentVariable("ConnectionStrings__BancoDados")
+            ?? "Host=localhost;Port=5432;Database=credito;Username=credite;Password=credite_dev_password";
+
         var opcoes = new DbContextOptionsBuilder<CrediteDbContext>()
-            .UseNpgsql("Host=localhost;Port=5432;Database=credito;Username=credite;Password=credite_dev_password")
+            .UseNpgsql(conexao)
             .Options;
 
         return new CrediteDbContext(opcoes);

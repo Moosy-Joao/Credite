@@ -11,7 +11,7 @@ O Credite não realiza análise financeira real, não concede crédito e não de
 | Credit API | Cadastro de clientes fictícios, solicitações e publicação de eventos | PostgreSQL credito |
 | Notification Worker | Consumo de eventos e registro idempotente de notificações | PostgreSQL notificacoes |
 
-O Credit grava a solicitação e um evento pendente na mesma transação. Um processo de Outbox publica os eventos no Apache Kafka. O Notification consome os eventos, registra a notificação e confirma o offset somente após persistir os dados.
+O Credit grava a solicitação e um evento pendente na mesma transação. Um processo de Outbox publica os eventos no Apache Kafka com bloqueio transacional de linha para coordenar instâncias concorrentes. A entrega é at-least-once, e o Notification aplica idempotência antes de confirmar o offset.
 
 Cada serviço é dono do próprio banco. Os bancos compartilham apenas a instância PostgreSQL no ambiente local, não tabelas ou migrations.
 
@@ -136,10 +136,10 @@ O valor permitido é de R$ 100,00 a R$ 10.000,00. A solicitação inicia com sta
 GET /solicitacoes/ID-DA-SOLICITACAO
 ~~~
 
-Também é possível listar solicitações de um cliente:
+A listagem usa página 1 e tamanho 20 por padrão, aceita tamanho máximo de 100 e retorna os metadados de paginação (`itens`, `pagina`, `tamanhoPagina`, `totalRegistros` e `totalPaginas`). Também é possível filtrar por cliente:
 
 ~~~http
-GET /solicitacoes?clienteId=ID-DO-CLIENTE
+GET /solicitacoes?clienteId=ID-DO-CLIENTE&pagina=1&tamanhoPagina=20
 ~~~
 
 ### 4. Verificar notificação
@@ -150,12 +150,17 @@ Após o evento ser publicado e consumido, a notificação fica registrada no ban
 
 | Método | Rota | Descrição |
 |---|---|---|
-| GET | /health | Verifica a conexão com o banco do Credit |
+| GET | /health/live | Verifica se o processo da API está ativo |
+| GET | /health | Verifica prontidão de PostgreSQL e Kafka |
 | POST | /clientes | Cadastra cliente fictício |
 | GET | /clientes/{id} | Consulta cliente |
 | POST | /solicitacoes | Cria solicitação e evento Outbox |
 | GET | /solicitacoes | Lista solicitações, opcionalmente filtradas por cliente |
 | GET | /solicitacoes/{id} | Consulta solicitação |
+
+## Configuração e credenciais
+
+As credenciais versionadas em `appsettings.json`, nas fábricas de design-time e no Docker Compose são **exclusivas para desenvolvimento local descartável**. Não reutilize esses valores em produção. Os processos .NET aceitam sobrescrita pela variável de ambiente `ConnectionStrings__BancoDados`; o EF Core design-time também respeita essa variável. Não armazene credenciais reais no repositório.
 
 ## Migrations
 
@@ -186,7 +191,7 @@ Revise sempre o código gerado antes de aplicar ou enviar uma migration.
 
 - Tópico principal: solicitacoes.credito.criada.
 - Dead-letter topic: solicitacoes.credito.criada.dlq.
-- A Outbox evita perder o evento entre a gravação da solicitação e a publicação no Kafka.
+- A Outbox evita perder o evento entre a gravação da solicitação e a publicação no Kafka. O publicador reivindica registros com bloqueio transacional de linha e `FOR UPDATE SKIP LOCKED`, evitando que duas instâncias processem simultaneamente o mesmo registro. A entrega é at-least-once: pode haver republicação se o processo cair depois do envio ao Kafka e antes de salvar a confirmação. O consumidor é idempotente.
 - O Notification usa eventoId único para impedir notificações duplicadas.
 - O offset só é confirmado após persistência ou envio bem-sucedido para a DLQ.
 
@@ -204,9 +209,9 @@ Consulte docs/CONTRATOS-EVENTOS.md para o payload.
 
 - Não há autenticação, autorização ou interface Web.
 - A análise de crédito é fictícia; a API apenas registra a solicitação como EmAnalise.
-- A Outbox limita a dez tentativas e exige inspeção manual após esgotá-las.
+- A Outbox limita a dez tentativas e exige inspeção manual após esgotá-las. O publicador mantém um bloqueio transacional de linha durante o envio ao Kafka; a entrega continua sendo at-least-once.
 - O Worker repete falhas temporárias de persistência até conseguir processar a mensagem.
-- A DLQ não possui ferramenta de replay automático.
+- A DLQ não possui ferramenta de replay automático. As mensagens inválidas incluem headers com tópico, partição, offset, horário e motivo da falha.
 - A configuração do Docker Compose é exclusivamente para desenvolvimento local.
 
 ## Documentação

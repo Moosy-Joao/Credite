@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Text;
 using System.Text.Json;
 using Confluent.Kafka;
 using Credite.Notification.Worker.Contratos;
@@ -8,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Npgsql;
 
 namespace Credite.Notification.Worker.Servicos;
 
@@ -59,7 +62,7 @@ public sealed class ConsumidorEventos(
 
             var processada = false;
 
-            // O offset só é confirmado depois da persistência ou do envio à DLQ.
+            // O offset só é confirmado depois da persistência ou do envio confirmado à DLQ.
             while (!processada && !stoppingToken.IsCancellationRequested)
             {
                 try
@@ -89,11 +92,16 @@ public sealed class ConsumidorEventos(
         ConsumeResult<string, string> mensagem,
         CancellationToken cancellationToken)
     {
-        EventoSolicitacaoCriada? evento;
+        EventoSolicitacaoCriada? evento = null;
+        string? motivoInvalidez = null;
 
         try
         {
-            evento = JsonSerializer.Deserialize<EventoSolicitacaoCriada>(mensagem.Message.Value, OpcoesJson);
+            var conteudo = mensagem.Message?.Value;
+            if (string.IsNullOrWhiteSpace(conteudo))
+                throw new JsonException("O payload está vazio ou é nulo.");
+
+            evento = JsonSerializer.Deserialize<EventoSolicitacaoCriada>(conteudo, OpcoesJson);
 
             if (evento is null ||
                 evento.EventoId == Guid.Empty ||
@@ -109,12 +117,12 @@ public sealed class ConsumidorEventos(
         }
         catch (JsonException excecao)
         {
-            logger.LogWarning(excecao, "Evento inválido enviado para a dead-letter topic.");
-            await produtor.ProduceAsync(_topicoFalhas, new Message<string, string>
-            {
-                Key = mensagem.Message.Key,
-                Value = mensagem.Message.Value
-            }, cancellationToken);
+            motivoInvalidez = excecao.Message;
+        }
+
+        if (motivoInvalidez is not null)
+        {
+            await EncaminharParaDeadLetter(mensagem, motivoInvalidez, cancellationToken);
             return;
         }
 
@@ -122,24 +130,65 @@ public sealed class ConsumidorEventos(
         var banco = escopo.ServiceProvider.GetRequiredService<NotificacoesDbContext>();
 
         var eventoJaProcessado = await banco.Notificacoes
-            .AnyAsync(notificacao => notificacao.EventoId == evento.EventoId, cancellationToken);
+            .AnyAsync(notificacao => notificacao.EventoId == evento!.EventoId, cancellationToken);
 
         if (eventoJaProcessado)
         {
-            logger.LogInformation("Evento {EventoId} já processado. Ignorando duplicidade.", evento.EventoId);
+            logger.LogInformation("Evento {EventoId} já processado. Ignorando duplicidade.", evento!.EventoId);
             return;
         }
 
         var notificacao = new Notificacao(
-            evento.EventoId,
+            evento!.EventoId,
             evento.SolicitacaoId,
             evento.ClienteId,
             $"Sua solicitação de crédito no valor de R$ {evento.ValorSolicitado:N2} foi registrada e está em análise.");
 
         banco.Notificacoes.Add(notificacao);
-        await banco.SaveChangesAsync(cancellationToken);
 
-        logger.LogInformation("Notificação {NotificacaoId} registrada para a solicitação {SolicitacaoId}.",
-            notificacao.Id, notificacao.SolicitacaoId);
+        try
+        {
+            await banco.SaveChangesAsync(cancellationToken);
+            logger.LogInformation("Notificação {NotificacaoId} registrada para a solicitação {SolicitacaoId}.",
+                notificacao.Id, notificacao.SolicitacaoId);
+        }
+        catch (DbUpdateException excecao) when (EhEventoDuplicado(excecao))
+        {
+            // A constraint única é a proteção definitiva contra duas entregas concorrentes.
+            logger.LogInformation("Evento {EventoId} já persistido por outro processamento.", evento.EventoId);
+        }
     }
+
+    private async Task EncaminharParaDeadLetter(
+        ConsumeResult<string, string> mensagem,
+        string motivo,
+        CancellationToken cancellationToken)
+    {
+        var cabecalhos = new Headers
+        {
+            new("credite-topico-origem", Encoding.UTF8.GetBytes(mensagem.Topic)),
+            new("credite-particao-origem", Encoding.UTF8.GetBytes(mensagem.Partition.Value.ToString(CultureInfo.InvariantCulture))),
+            new("credite-offset-origem", Encoding.UTF8.GetBytes(mensagem.Offset.Value.ToString(CultureInfo.InvariantCulture))),
+            new("credite-falha-em", Encoding.UTF8.GetBytes(DateTimeOffset.UtcNow.ToString("O", CultureInfo.InvariantCulture))),
+            new("credite-motivo", Encoding.UTF8.GetBytes(motivo.Length <= 500 ? motivo : motivo[..500]))
+        };
+
+        await produtor.ProduceAsync(_topicoFalhas, new Message<string, string>
+        {
+            Key = mensagem.Message?.Key,
+            Value = mensagem.Message?.Value,
+            Headers = cabecalhos
+        }, cancellationToken);
+
+        logger.LogWarning(
+            "Mensagem inválida encaminhada à DLQ. Tópico {Topico}, partição {Particao}, offset {Offset}.",
+            mensagem.Topic, mensagem.Partition.Value, mensagem.Offset.Value);
+    }
+
+    private static bool EhEventoDuplicado(DbUpdateException excecao) =>
+        excecao.InnerException is PostgresException
+        {
+            SqlState: PostgresErrorCodes.UniqueViolation,
+            ConstraintName: "ix_notificacoes_evento_id"
+        };
 }
