@@ -72,6 +72,8 @@ public sealed class PublicadorEventos(
         var evento = await banco.EventosPendentes
             .SingleAsync(item => item.Id == eventoId, cancellationToken);
 
+        var falhouAoPublicar = false;
+
         try
         {
             await produtor.ProduceAsync(_topico, new Message<string, string>
@@ -85,6 +87,7 @@ public sealed class PublicadorEventos(
         }
         catch (Exception excecao) when (excecao is not OperationCanceledException)
         {
+            falhouAoPublicar = true;
             evento.RegistrarFalha(excecao.Message);
             logger.LogError(excecao, "Falha ao publicar evento {EventoId}. Tentativa {Tentativa}.",
                 evento.Id, evento.Tentativas);
@@ -92,6 +95,10 @@ public sealed class PublicadorEventos(
 
         await banco.SaveChangesAsync(cancellationToken);
         await transacao.CommitAsync(cancellationToken);
+
+        if (falhouAoPublicar)
+            await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
+
         return true;
     }
 }
