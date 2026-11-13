@@ -9,6 +9,9 @@ namespace Credite.Credit.Api.Endpoints;
 public static class SolicitacoesEndpoints
 {
     private const string TipoEvento = "SolicitacaoCreditoCriada";
+    private const int PaginaPadrao = 1;
+    private const int TamanhoPaginaPadrao = 20;
+    private const int TamanhoPaginaMaximo = 100;
     private static readonly JsonSerializerOptions OpcoesJson = new(JsonSerializerDefaults.Web);
 
     public static IEndpointRouteBuilder MapSolicitacoesEndpoints(this IEndpointRouteBuilder rotas)
@@ -61,22 +64,42 @@ public static class SolicitacoesEndpoints
 
     private static async Task<IResult> Listar(
         Guid? clienteId,
+        int? pagina,
+        int? tamanhoPagina,
         CrediteDbContext banco,
         CancellationToken cancellationToken)
     {
+        var numeroPagina = pagina ?? PaginaPadrao;
+        var tamanho = tamanhoPagina ?? TamanhoPaginaPadrao;
+
+        if (numeroPagina < 1 || tamanho < 1 || tamanho > TamanhoPaginaMaximo)
+        {
+            return Results.ValidationProblem(new Dictionary<string, string[]>
+            {
+                ["paginacao"] = [$"A página deve ser maior que zero e o tamanho deve estar entre 1 e {TamanhoPaginaMaximo}."]
+            });
+        }
+
         var consulta = banco.Solicitacoes.AsNoTracking();
 
         if (clienteId.HasValue)
             consulta = consulta.Where(solicitacao => solicitacao.ClienteId == clienteId.Value);
 
-        var solicitacoes = await consulta
+        var totalRegistros = await consulta.CountAsync(cancellationToken);
+        var totalPaginas = (int)Math.Ceiling(totalRegistros / (double)tamanho);
+
+        var itens = await consulta
             .OrderByDescending(solicitacao => solicitacao.CriadoEm)
+            .ThenBy(solicitacao => solicitacao.Id)
+            .Skip((numeroPagina - 1) * tamanho)
+            .Take(tamanho)
             .Select(solicitacao => new SolicitacaoResposta(
                 solicitacao.Id, solicitacao.ClienteId, solicitacao.ValorSolicitado,
                 solicitacao.Status, solicitacao.CriadoEm))
             .ToListAsync(cancellationToken);
 
-        return Results.Ok(solicitacoes);
+        return Results.Ok(new ListaPaginada<SolicitacaoResposta>(
+            itens, numeroPagina, tamanho, totalRegistros, totalPaginas));
     }
 
     private static async Task<IResult> ConsultarPorId(
@@ -102,3 +125,10 @@ public sealed record SolicitacaoResposta(
         new(solicitacao.Id, solicitacao.ClienteId, solicitacao.ValorSolicitado,
             solicitacao.Status, solicitacao.CriadoEm);
 }
+
+public sealed record ListaPaginada<T>(
+    IReadOnlyList<T> Itens,
+    int Pagina,
+    int TamanhoPagina,
+    int TotalRegistros,
+    int TotalPaginas);
