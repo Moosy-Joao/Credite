@@ -15,10 +15,20 @@ public static class ClientesEndpoints
     }
 
     private static async Task<IResult> Cadastrar(
-        CadastrarClienteRequest requisicao,
+        CadastrarClienteRequest? requisicao,
         CrediteDbContext banco,
         CancellationToken cancellationToken)
     {
+        if (requisicao is null ||
+            string.IsNullOrWhiteSpace(requisicao.Nome) ||
+            string.IsNullOrWhiteSpace(requisicao.Email))
+        {
+            return Results.ValidationProblem(new Dictionary<string, string[]>
+            {
+                ["cliente"] = ["Nome e e-mail são obrigatórios."]
+            });
+        }
+
         try
         {
             var emailNormalizado = requisicao.Email.Trim().ToLowerInvariant();

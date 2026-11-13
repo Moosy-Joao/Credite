@@ -95,9 +95,17 @@ public sealed class ConsumidorEventos(
         {
             evento = JsonSerializer.Deserialize<EventoSolicitacaoCriada>(mensagem.Message.Value, OpcoesJson);
 
-            if (evento is null || evento.EventoId == Guid.Empty ||
-                evento.SolicitacaoId == Guid.Empty || evento.ClienteId == Guid.Empty)
-                throw new JsonException("O evento não contém os identificadores obrigatórios.");
+            if (evento is null ||
+                evento.EventoId == Guid.Empty ||
+                evento.SolicitacaoId == Guid.Empty ||
+                evento.ClienteId == Guid.Empty ||
+                evento.ValorSolicitado < 100m ||
+                evento.ValorSolicitado > 10_000m ||
+                decimal.Round(evento.ValorSolicitado, 2) != evento.ValorSolicitado ||
+                evento.CriadoEm == default)
+            {
+                throw new JsonException("O evento não contém dados válidos para processamento.");
+            }
         }
         catch (JsonException excecao)
         {

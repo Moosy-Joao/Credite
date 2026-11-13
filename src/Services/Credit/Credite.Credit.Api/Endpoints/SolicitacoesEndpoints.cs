@@ -21,10 +21,13 @@ public static class SolicitacoesEndpoints
     }
 
     private static async Task<IResult> Criar(
-        CriarSolicitacaoRequest requisicao,
+        CriarSolicitacaoRequest? requisicao,
         CrediteDbContext banco,
         CancellationToken cancellationToken)
     {
+        if (requisicao is null)
+            return Results.BadRequest(new { mensagem = "O corpo da solicitação é obrigatório." });
+
         var clienteExiste = await banco.Clientes.AnyAsync(
             cliente => cliente.Id == requisicao.ClienteId, cancellationToken);
 

@@ -38,9 +38,11 @@ O projeto será concluído em incrementos verificáveis. O objetivo é demonstra
 ## Etapa 5 — Validação e finalização
 
 - [x] Configurar build e testes no GitHub Actions.
+- [x] Validar snapshots das migrations automaticamente.
 - [x] Documentar o contrato de eventos.
 - [x] Documentar execução local e exemplos HTTP.
-- [ ] Validar infraestrutura e fluxo completo em ambiente local.
+- [x] Validar o fluxo completo entre os serviços com PostgreSQL e Kafka no GitHub Actions.
+- [ ] Executar o fluxo completo no ambiente local com Visual Studio Community.
 - [ ] Revisar implementação no Visual Studio Community.
 
 ## Fora do escopo

@@ -73,7 +73,7 @@ dotnet test Credite.slnx
 Inicie a API em um terminal:
 
 ~~~powershell
-dotnet run --no-build --configuration Release --project src/Services/Credit/Credite.Credit.Api
+dotnet run --project src/Services/Credit/Credite.Credit.Api
 ~~~
 
 A API aplica suas migrations automaticamente na inicialização. A documentação interativa fica em /scalar/v1, na URL indicada pelo terminal.
@@ -81,10 +81,10 @@ A API aplica suas migrations automaticamente na inicialização. A documentaçã
 Inicie o Worker em outro terminal:
 
 ~~~powershell
-dotnet run --no-build --configuration Release --project src/Services/Notification/Credite.Notification.Worker
+dotnet run --project src/Services/Notification/Credite.Notification.Worker
 ~~~
 
-O Worker também aplica suas migrations automaticamente e começa a consumir o tópico Kafka. Os dois serviços carregam suas configurações locais a partir dos arquivos appsettings distribuídos junto aos executáveis.
+O Worker também aplica suas migrations automaticamente e começa a consumir o tópico Kafka. Os dois serviços carregam as configurações locais a partir dos arquivos appsettings distribuídos junto aos executáveis, independentemente da pasta atual do terminal.
 
 Para encerrar a infraestrutura:
 
