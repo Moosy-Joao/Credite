@@ -32,7 +32,8 @@ flowchart LR
 - Consome eventos do Kafka.
 - Persiste notificações no banco próprio.
 - Usa o identificador do evento para idempotência.
-- Confirma o offset somente após persistência ou após envio confirmado à DLQ.\n- Encaminha mensagens inválidas com headers de tópico, partição, offset, horário e motivo.
+- Confirma o offset somente após persistência ou após envio confirmado à DLQ.
+- Encaminha mensagens inválidas com headers de tópico, partição, offset, horário e motivo.
 - Encaminha mensagens inválidas para uma dead-letter topic.
 
 ## Persistência
@@ -41,7 +42,9 @@ Cada microsserviço possui seu próprio banco PostgreSQL. No ambiente local, os 
 
 ## Outbox e entrega
 
-A solicitação e o evento pendente são persistidos na mesma transação. Um serviço em segundo plano publica os eventos pendentes. O publicador seleciona cada registro com `FOR UPDATE SKIP LOCKED` dentro de uma transação, mantendo o bloqueio até salvar o resultado da publicação. Isso impede dois publicadores de selecionar simultaneamente a mesma linha. O timeout de publicação Kafka é limitado a 15 segundos.\n\nA entrega é at-least-once, não exactly-once: se Kafka aceitar a mensagem e o processo cair antes de persistir `publicado_em`, o evento poderá ser publicado novamente. Por isso, o Notification aplica idempotência no banco e trata a constraint única como proteção definitiva. O bloqueio transacional é adequado ao volume didático atual; processamento em lotes/leases persistidos fica para uma necessidade futura.
+A solicitação e o evento pendente são persistidos na mesma transação. Um serviço em segundo plano publica os eventos pendentes. O publicador seleciona cada registro com `FOR UPDATE SKIP LOCKED` dentro de uma transação, mantendo o bloqueio até salvar o resultado da publicação. Isso impede dois publicadores de selecionar simultaneamente a mesma linha. O timeout de publicação Kafka é limitado a 15 segundos.
+
+A entrega é at-least-once, não exactly-once: se Kafka aceitar a mensagem e o processo cair antes de persistir `publicado_em`, o evento poderá ser publicado novamente. Por isso, o Notification aplica idempotência no banco e trata a constraint única como proteção definitiva. O bloqueio transacional é adequado ao volume didático atual; processamento em lotes/leases persistidos fica para uma necessidade futura.
 
 A publicação pode ocorrer mais de uma vez se o Kafka aceitar a mensagem e a aplicação falhar antes de marcar a Outbox como publicada. Por isso, o Notification usa eventoId único e processamento idempotente.
 
@@ -56,6 +59,12 @@ A Outbox realiza até dez tentativas. Eventos que esgotarem as tentativas perman
 - Worker Service e xUnit.
 - Docker Compose.
 
-## Saúde e prontidão\n\n- `/health/live` informa se o processo da API está ativo.\n- `/health` verifica PostgreSQL e Kafka e retorna 503 quando uma dependência obrigatória está indisponível.\n- O Worker não expõe HTTP no MVP; seu estado é acompanhado pelo processo e pelos logs.\n\n## Limites
+## Saúde e prontidão
+
+- `/health/live` informa se o processo da API está ativo.
+- `/health` verifica PostgreSQL e Kafka e retorna 503 quando uma dependência obrigatória está indisponível.
+- O Worker não expõe HTTP no MVP; seu estado é acompanhado pelo processo e pelos logs.
+
+## Limites
 
 Autenticação, interface Web, API Gateway, Redis, MongoDB, terceiro microsserviço e Saga não fazem parte do MVP. Os dados e regras de crédito são inteiramente fictícios.
