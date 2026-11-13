@@ -85,6 +85,7 @@ jobs:
             kill "$API_PID" "$API2_PID" "$WORKER_PID" 2>/dev/null || true
             docker compose down -v
           }
+          API2_PID=""
           trap finalizar EXIT
 
           API_DISPONIVEL=false
@@ -134,16 +135,24 @@ jobs:
           test -n "$SOLICITACAO_ID"
 
           # O índice único deve transformar duplicidade, inclusive concorrente, em HTTP 409.
-          for tentativa in a b; do
-            (
-              curl --max-time 10 -sS -o "/tmp/cliente-$tentativa.json" -w "%{http_code}" \
-                -X POST http://127.0.0.1:5080/clientes/ \
-                -H "Content-Type: application/json" \
-                -d '{"nome":"Cliente Concorrente","email":"concorrencia.ci@example.com"}' \
-                > "/tmp/cliente-$tentativa.status"
-            ) &
-          done
-          wait
+          (
+            curl --max-time 10 -sS -o /tmp/cliente-a.json -w "%{http_code}" \
+              -X POST http://127.0.0.1:5080/clientes/ \
+              -H "Content-Type: application/json" \
+              -d '{"nome":"Cliente Concorrente","email":"concorrencia.ci@example.com"}' \
+              > /tmp/cliente-a.status
+          ) &
+          PID_A=$!
+          (
+            curl --max-time 10 -sS -o /tmp/cliente-b.json -w "%{http_code}" \
+              -X POST http://127.0.0.1:5080/clientes/ \
+              -H "Content-Type: application/json" \
+              -d '{"nome":"Cliente Concorrente","email":"concorrencia.ci@example.com"}' \
+              > /tmp/cliente-b.status
+          ) &
+          PID_B=$!
+          wait "$PID_A"
+          wait "$PID_B"
           STATUS_A=$(cat /tmp/cliente-a.status)
           STATUS_B=$(cat /tmp/cliente-b.status)
           if ! { [ "$STATUS_A" = "201" ] && [ "$STATUS_B" = "409" ]; } && ! { [ "$STATUS_A" = "409" ] && [ "$STATUS_B" = "201" ]; }; then
