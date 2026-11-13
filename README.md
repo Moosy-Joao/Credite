@@ -152,7 +152,6 @@ Após o evento ser publicado e consumido, a notificação fica registrada no ban
 |---|---|---|
 | GET | /health/live | Verifica se o processo da API está ativo |
 | GET | /health | Verifica prontidão de PostgreSQL e Kafka |
-| GET | /health | Verifica prontidão de PostgreSQL e Kafka |
 | POST | /clientes | Cadastra cliente fictício |
 | GET | /clientes/{id} | Consulta cliente |
 | POST | /solicitacoes | Cria solicitação e evento Outbox |
