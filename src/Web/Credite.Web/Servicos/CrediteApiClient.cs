@@ -13,7 +13,8 @@ public sealed class CrediteApiClient(HttpClient cliente) : ICrediteApiClient
         CadastrarClienteApiRequest requisicao,
         CancellationToken cancellationToken) =>
         EnviarAsync<ClienteApiDto>(
-            () => cliente.PostAsJsonAsync("clientes", requisicao, OpcoesJson, cancellationToken));
+            () => cliente.PostAsJsonAsync("clientes", requisicao, OpcoesJson, cancellationToken),
+            cancellationToken);
 
     public async Task<ClienteApiDto?> ConsultarClienteAsync(
         Guid id,
@@ -30,7 +31,8 @@ public sealed class CrediteApiClient(HttpClient cliente) : ICrediteApiClient
         CriarSolicitacaoApiRequest requisicao,
         CancellationToken cancellationToken) =>
         EnviarAsync<SolicitacaoApiDto>(
-            () => cliente.PostAsJsonAsync("solicitacoes", requisicao, OpcoesJson, cancellationToken));
+            () => cliente.PostAsJsonAsync("solicitacoes", requisicao, OpcoesJson, cancellationToken),
+            cancellationToken);
 
     public async Task<ListaPaginadaApiDto<SolicitacaoApiDto>> ListarSolicitacoesAsync(
         Guid? clienteId,
@@ -58,10 +60,12 @@ public sealed class CrediteApiClient(HttpClient cliente) : ICrediteApiClient
         return await LerRespostaAsync<SolicitacaoApiDto>(resposta, cancellationToken);
     }
 
-    private async Task<T> EnviarAsync<T>(Func<Task<HttpResponseMessage>> enviar)
+    private async Task<T> EnviarAsync<T>(
+        Func<Task<HttpResponseMessage>> enviar,
+        CancellationToken cancellationToken)
     {
         using var resposta = await enviar();
-        return await LerRespostaAsync<T>(resposta, CancellationToken.None);
+        return await LerRespostaAsync<T>(resposta, cancellationToken);
     }
 
     private static async Task<T> LerRespostaAsync<T>(
