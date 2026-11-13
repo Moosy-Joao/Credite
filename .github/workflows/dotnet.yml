@@ -12,6 +12,7 @@ permissions:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Baixar código
         uses: actions/checkout@v4
@@ -38,19 +39,33 @@ jobs:
         run: |
           set -euo pipefail
 
-          for tentativa in $(seq 1 60); do
-            if docker exec credite-postgres pg_isready -U credite -d postgres >/dev/null 2>&1; then
+          POSTGRES_DISPONIVEL=false
+          for tentativa in $(seq 1 30); do
+            if timeout 5s docker exec credite-postgres pg_isready -U credite -d postgres >/dev/null 2>&1; then
+              POSTGRES_DISPONIVEL=true
               break
             fi
             sleep 2
           done
 
-          for tentativa in $(seq 1 60); do
-            if docker exec credite-kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list >/dev/null 2>&1; then
+          if [ "$POSTGRES_DISPONIVEL" != "true" ]; then
+            docker logs credite-postgres
+            exit 1
+          fi
+
+          KAFKA_DISPONIVEL=false
+          for tentativa in $(seq 1 30); do
+            if timeout 5s docker exec credite-kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list >/dev/null 2>&1; then
+              KAFKA_DISPONIVEL=true
               break
             fi
             sleep 2
           done
+
+          if [ "$KAFKA_DISPONIVEL" != "true" ]; then
+            docker logs credite-kafka
+            exit 1
+          fi
 
           ASPNETCORE_URLS=http://127.0.0.1:5080 dotnet run --no-build --configuration Release --project src/Services/Credit/Credite.Credit.Api > /tmp/credit-api.log 2>&1 &
           API_PID=$!
@@ -65,8 +80,8 @@ jobs:
           trap finalizar EXIT
 
           API_DISPONIVEL=false
-          for tentativa in $(seq 1 60); do
-            if curl -fsS http://127.0.0.1:5080/health >/dev/null; then
+          for tentativa in $(seq 1 30); do
+            if curl --max-time 3 -fsS http://127.0.0.1:5080/health >/dev/null; then
               API_DISPONIVEL=true
               break
             fi
@@ -78,14 +93,14 @@ jobs:
             exit 1
           fi
 
-          curl -fsS -X POST http://127.0.0.1:5080/clientes/ \
+          curl --max-time 10 -fsS -X POST http://127.0.0.1:5080/clientes/ \
             -H "Content-Type: application/json" \
             -d '{"nome":"Ana Silva","email":"ana.ci@example.com"}' > /tmp/cliente.json
 
           CLIENTE_ID=$(jq -r '.id // empty' /tmp/cliente.json)
           test -n "$CLIENTE_ID"
 
-          curl -fsS -X POST http://127.0.0.1:5080/solicitacoes/ \
+          curl --max-time 10 -fsS -X POST http://127.0.0.1:5080/solicitacoes/ \
             -H "Content-Type: application/json" \
             -d "{\"clienteId\":\"$CLIENTE_ID\",\"valorSolicitado\":2500.00}" > /tmp/solicitacao.json
 
@@ -93,8 +108,8 @@ jobs:
           test -n "$SOLICITACAO_ID"
 
           NOTIFICACAO_RECEBIDA=false
-          for tentativa in $(seq 1 60); do
-            TOTAL=$(docker exec credite-postgres psql -U credite -d notificacoes -tAc \
+          for tentativa in $(seq 1 30); do
+            TOTAL=$(timeout 5s docker exec credite-postgres psql -U credite -d notificacoes -tAc \
               "SELECT COUNT(*) FROM notificacao.notificacoes WHERE solicitacao_id = '$SOLICITACAO_ID';" 2>/dev/null | tr -d '[:space:]' || true)
 
             if [ "$TOTAL" = "1" ]; then
