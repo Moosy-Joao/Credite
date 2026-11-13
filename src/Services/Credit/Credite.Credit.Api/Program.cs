@@ -33,16 +33,23 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference();
 }
 
-app.MapGet("/health", async (CrediteDbContext banco, CancellationToken cancellationToken) =>
-{
-    var bancoDisponivel = await banco.Database.CanConnectAsync(cancellationToken);
-    return bancoDisponivel
-        ? Results.Ok(new { status = "healthy", servico = "credit" })
-        : Results.Problem(title: "Banco de dados indisponível.", statusCode: StatusCodes.Status503ServiceUnavailable);
-});
+app.MapGet("/health", VerificarSaude);
 app.MapClientesEndpoints();
 app.MapSolicitacoesEndpoints();
 
 await app.RunAsync();
+
+static async Task<IResult> VerificarSaude(
+    CrediteDbContext banco,
+    CancellationToken cancellationToken)
+{
+    var bancoDisponivel = await banco.Database.CanConnectAsync(cancellationToken);
+
+    return bancoDisponivel
+        ? Results.Ok(new { status = "healthy", servico = "credit" })
+        : Results.Problem(
+            title: "Banco de dados indisponível.",
+            statusCode: StatusCodes.Status503ServiceUnavailable);
+}
 
 public partial class Program { }
