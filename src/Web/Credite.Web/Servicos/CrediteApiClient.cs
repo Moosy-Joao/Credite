@@ -13,8 +13,7 @@ public sealed class CrediteApiClient(HttpClient cliente) : ICrediteApiClient
         CadastrarClienteApiRequest requisicao,
         CancellationToken cancellationToken) =>
         EnviarAsync<ClienteApiDto>(
-            () => cliente.PostAsJsonAsync("clientes", requisicao, OpcoesJson, cancellationToken),
-            cancellationToken);
+            () => cliente.PostAsJsonAsync("clientes", requisicao, OpcoesJson, cancellationToken));
 
     public async Task<ClienteApiDto?> ConsultarClienteAsync(
         Guid id,
@@ -31,8 +30,7 @@ public sealed class CrediteApiClient(HttpClient cliente) : ICrediteApiClient
         CriarSolicitacaoApiRequest requisicao,
         CancellationToken cancellationToken) =>
         EnviarAsync<SolicitacaoApiDto>(
-            () => cliente.PostAsJsonAsync("solicitacoes", requisicao, OpcoesJson, cancellationToken),
-            cancellationToken);
+            () => cliente.PostAsJsonAsync("solicitacoes", requisicao, OpcoesJson, cancellationToken));
 
     public async Task<ListaPaginadaApiDto<SolicitacaoApiDto>> ListarSolicitacoesAsync(
         Guid? clienteId,
@@ -60,12 +58,10 @@ public sealed class CrediteApiClient(HttpClient cliente) : ICrediteApiClient
         return await LerRespostaAsync<SolicitacaoApiDto>(resposta, cancellationToken);
     }
 
-    private async Task<T> EnviarAsync<T>(
-        Func<Task<HttpResponseMessage>> enviar,
-        CancellationToken cancellationToken)
+    private async Task<T> EnviarAsync<T>(Func<Task<HttpResponseMessage>> enviar)
     {
         using var resposta = await enviar();
-        return await LerRespostaAsync<T>(resposta, cancellationToken);
+        return await LerRespostaAsync<T>(resposta, CancellationToken.None);
     }
 
     private static async Task<T> LerRespostaAsync<T>(
@@ -111,17 +107,24 @@ public sealed class CrediteApiClient(HttpClient cliente) : ICrediteApiClient
             if (raiz.TryGetProperty("errors", out var erros) &&
                 erros.ValueKind == JsonValueKind.Object)
             {
-                var mensagens = erros.EnumerateObject()
-                    .SelectMany(erro => erro.Value.ValueKind == JsonValueKind.Array
-                        ? erro.Value.EnumerateArray()
-                            .Where(item => item.ValueKind == JsonValueKind.String)
-                            .Select(item => item.GetString())
-                        : [])
-                    .Where(mensagem => !string.IsNullOrWhiteSpace(mensagem));
+                var mensagens = new List<string>();
+                foreach (var erro in erros.EnumerateObject())
+                {
+                    if (erro.Value.ValueKind != JsonValueKind.Array)
+                        continue;
 
-                var mensagemValidacao = string.Join(" ", mensagens);
-                if (!string.IsNullOrWhiteSpace(mensagemValidacao))
-                    return mensagemValidacao;
+                    foreach (var item in erro.Value.EnumerateArray())
+                    {
+                        if (item.ValueKind == JsonValueKind.String &&
+                            !string.IsNullOrWhiteSpace(item.GetString()))
+                        {
+                            mensagens.Add(item.GetString()!);
+                        }
+                    }
+                }
+
+                if (mensagens.Count > 0)
+                    return string.Join(" ", mensagens);
             }
         }
         catch (JsonException)
