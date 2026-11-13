@@ -101,6 +101,10 @@ public sealed class SolicitacoesController(ICrediteApiClient api) : Controller
 
             return View(solicitacao);
         }
+        catch (CrediteApiException excecao)
+        {
+            return StatusCode((int)excecao.StatusCode, excecao.Message);
+        }
         catch (HttpRequestException)
         {
             return StatusCode(StatusCodes.Status503ServiceUnavailable,
