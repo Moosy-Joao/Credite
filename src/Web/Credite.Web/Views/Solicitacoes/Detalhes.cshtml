@@ -8,7 +8,7 @@
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <span>Solicitação</span>
-        <span class="badge text-bg-warning">@Model.Status</span>
+        <span class="badge text-bg-warning">@(Model.Status == "EmAnalise" ? "Em análise" : Model.Status)</span>
     </div>
     <dl class="card-body row mb-0">
         <dt class="col-sm-3">ID</dt>
@@ -18,7 +18,7 @@
         <dt class="col-sm-3">Valor solicitado</dt>
         <dd class="col-sm-9">@Model.ValorSolicitado.ToString("C", CultureInfo.GetCultureInfo("pt-BR"))</dd>
         <dt class="col-sm-3">Status</dt>
-        <dd class="col-sm-9">@Model.Status</dd>
+        <dd class="col-sm-9">@(Model.Status == "EmAnalise" ? "Em análise" : Model.Status)</dd>
         <dt class="col-sm-3">Criado em</dt>
         <dd class="col-sm-9">@Model.CriadoEm.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</dd>
     </dl>
