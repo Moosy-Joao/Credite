@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
     steps:
       - name: Baixar código
@@ -26,3 +26,6 @@ jobs:
 
       - name: Compilar solução
         run: dotnet build Credite.slnx --no-restore --configuration Release
+
+      - name: Executar testes
+        run: dotnet test Credite.slnx --no-build --configuration Release

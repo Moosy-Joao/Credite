@@ -1,0 +1,2 @@
+CREATE DATABASE credito;
+CREATE DATABASE notificacoes;
