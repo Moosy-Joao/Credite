@@ -1,9 +1,36 @@
-using Credite.Notification.Worker;
+using Confluent.Kafka;
+using Credite.Notification.Worker.Dados;
+using Credite.Notification.Worker.Servicos;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-var builder = Host.CreateApplicationBuilder(args);
+var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings
+{
+    Args = args,
+    ContentRootPath = AppContext.BaseDirectory
+});
 
-builder.Services.AddHostedService<ProcessadorNotificacoes>();
+builder.Services.AddDbContext<NotificacoesDbContext>(opcoes =>
+    opcoes.UseNpgsql(builder.Configuration.GetConnectionString("BancoDados")));
 
-await builder.Build().RunAsync();
+var configuracaoKafka = builder.Configuration.GetSection("Kafka");
+builder.Services.AddSingleton<IProducer<string, string>>(_ =>
+    new ProducerBuilder<string, string>(new ProducerConfig
+    {
+        BootstrapServers = configuracaoKafka["BootstrapServers"] ?? "localhost:9092",
+        ClientId = "credite-notification-worker"
+    }).Build());
+
+builder.Services.AddHostedService<ConsumidorEventos>();
+
+var host = builder.Build();
+
+await using (var escopo = host.Services.CreateAsyncScope())
+{
+    var banco = escopo.ServiceProvider.GetRequiredService<NotificacoesDbContext>();
+    await banco.Database.MigrateAsync();
+}
+
+await host.RunAsync();

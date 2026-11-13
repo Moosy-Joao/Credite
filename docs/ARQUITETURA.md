@@ -2,67 +2,60 @@
 
 ## Visão geral
 
-O Credite terá somente dois microsserviços:
+O Credite possui dois microsserviços independentes:
 
-1. **Credit API:** recebe e gerencia clientes fictícios e solicitações de crédito.
-2. **Notification Worker:** recebe eventos publicados pelo Credit e registra notificações.
-
-A comunicação entre os serviços será assíncrona por Apache Kafka.
+1. Credit API: cadastra clientes fictícios, registra solicitações e publica eventos.
+2. Notification Worker: consome eventos e registra notificações em seu próprio banco.
 
 ## Diagrama
 
-```mermaid
+~~~mermaid
 flowchart LR
-    Cliente[Usuário ou cliente HTTP] --> API[Credit API]
-    API --> BancoCredito[(PostgreSQL - Credit)]
-    API --> Kafka[(Apache Kafka)]
+    Cliente[Cliente HTTP] --> API[Credit API]
+    API --> BancoCredito[(PostgreSQL credito)]
+    API --> Outbox[Outbox]
+    Outbox --> Kafka[(Apache Kafka)]
     Kafka --> Worker[Notification Worker]
-    Worker --> BancoNotificacao[(PostgreSQL - Notification)]
-```
+    Worker --> BancoNotificacao[(PostgreSQL notificacoes)]
+~~~
 
-## Responsabilidades
+## Credit API
 
-### Credit API
+- É responsável por clientes e solicitações.
+- Valida os dados de entrada e aplica limites demonstrativos.
+- Registra a solicitação e o evento Outbox na mesma transação.
+- Publica eventos pendentes no Kafka.
+- Não consulta o banco do Notification.
 
-- Cadastrar e consultar clientes fictícios.
-- Criar e consultar solicitações de crédito.
-- Aplicar regras demonstrativas simples.
-- Publicar eventos quando uma solicitação for registrada ou mudar de estado.
-- Ser a única responsável pelos dados de clientes e solicitações.
+## Notification Worker
 
-### Notification Worker
+- Consome eventos do Kafka.
+- Persiste notificações no banco próprio.
+- Usa o identificador do evento para idempotência.
+- Confirma o offset somente após persistência.
+- Encaminha mensagens inválidas para uma dead-letter topic.
 
-- Consumir eventos publicados pelo Credit.
-- Processar cada evento e registrar uma notificação fictícia.
-- Ser o único responsável pelos registros de notificação.
-- Não consultar o banco do Credit.
+## Persistência
 
-## Comunicação e persistência
+Cada microsserviço possui seu próprio banco PostgreSQL. No ambiente local, os bancos são criados na mesma instância para reduzir a infraestrutura necessária. Não existem tabelas, migrations, DbContexts ou transações compartilhadas.
 
-- O Credit expõe HTTP para os clientes da API.
-- O Credit publica eventos no Kafka.
-- O Notification consome eventos do Kafka.
-- Cada serviço possui seu próprio banco PostgreSQL.
-- No ambiente local, os dois bancos podem rodar na mesma instância PostgreSQL.
-- Não compartilhar tabelas, migrations, DbContexts ou transações entre serviços.
+## Outbox e entrega
 
-A primeira versão da integração poderá publicar o evento após salvar a solicitação. O risco de falha entre a gravação e a publicação será estudado e corrigido posteriormente com Transactional Outbox.
+A solicitação e o evento pendente são persistidos na mesma transação. Um serviço em segundo plano publica os eventos pendentes. Isso evita perder o evento quando a aplicação falha depois de salvar a solicitação.
 
-## Decisões de simplicidade
+A publicação pode ocorrer mais de uma vez se o Kafka aceitar a mensagem e a aplicação falhar antes de marcar a Outbox como publicada. Por isso, o Notification usa eventoId único e processamento idempotente.
 
-- Um projeto executável por microsserviço.
-- Sem projetos separados de Domain, Application e Infrastructure no início.
-- Sem autenticação ou autorização no MVP.
-- Sem interface Web.
-- Sem API Gateway.
-- Sem Redis ou MongoDB.
-- Sem chamadas HTTP entre os microsserviços.
-- Sem abstrações ou bibliotecas extras antes de existir necessidade.
+A Outbox realiza até dez tentativas. Eventos que esgotarem as tentativas permanecem registrados para inspeção manual.
 
-## Evolução
+## Tecnologias
 
-A simplicidade inicial não significa ignorar boas práticas. Testes, validação, tratamento de erros, idempotência, Outbox, retry e dead-letter serão introduzidos em etapas, para que cada conceito seja aprendido quando o fluxo básico já estiver funcionando.
+- .NET 10 e C# 14.
+- ASP.NET Core Minimal APIs e Scalar.
+- EF Core 10 e PostgreSQL.
+- Apache Kafka e Confluent.Kafka.
+- Worker Service e xUnit.
+- Docker Compose.
 
-## Limites do produto
+## Limites
 
-Todos os dados são fictícios. O projeto não calcula score financeiro real, não aprova crédito de verdade e não integra instituições financeiras.
+Autenticação, interface Web, API Gateway, Redis, MongoDB, terceiro microsserviço e Saga não fazem parte do MVP. Os dados e regras de crédito são inteiramente fictícios.

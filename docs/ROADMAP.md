@@ -1,52 +1,58 @@
 # Roadmap do Credite
 
-O objetivo é concluir um fluxo funcional entre dois microsserviços, avançando em incrementos pequenos. Uma etapa só começa quando a anterior estiver compilando e validada.
+O projeto será concluído em incrementos verificáveis. O objetivo é demonstrar dois microsserviços independentes, persistência própria e comunicação assíncrona confiável.
 
 ## Etapa 1 — Estrutura mínima
 
 - [x] Manter somente Credit API e Notification Worker.
 - [x] Reduzir a solução para um projeto por serviço.
-- [x] Simplificar a documentação e as decisões arquiteturais.
-- [ ] Restaurar e compilar localmente no Visual Studio Community.
+- [x] Simplificar documentação e decisões arquiteturais.
+- [x] Configurar integração contínua de build.
 
 ## Etapa 2 — Credit API
 
-- [ ] Criar o modelo simples de Cliente.
-- [ ] Criar o modelo de Solicitação de Crédito.
-- [ ] Implementar cadastro e consulta de clientes fictícios.
-- [ ] Implementar criação e consulta de solicitações.
-- [ ] Persistir dados no PostgreSQL usando EF Core.
-- [ ] Criar testes unitários e de integração essenciais.
+- [x] Cadastrar e consultar clientes fictícios.
+- [x] Criar e consultar solicitações de crédito.
+- [x] Validar e normalizar dados de entrada.
+- [x] Persistir dados no PostgreSQL usando EF Core.
+- [x] Criar migration inicial.
+- [x] Documentar a API com OpenAPI e Scalar.
+- [x] Implementar testes unitários das regras essenciais.
 
-## Etapa 3 — Mensageria
+## Etapa 3 — Mensageria e confiabilidade de publicação
 
-- [ ] Subir PostgreSQL e Kafka localmente com Docker Compose.
-- [ ] Definir o contrato do evento SolicitaçãoCriada.
-- [ ] Publicar o evento pelo Credit após registrar uma solicitação.
-- [ ] Verificar publicação e consumo com uma mensagem real.
+- [x] Subir PostgreSQL e Kafka localmente com Docker Compose.
+- [x] Definir o contrato do evento SolicitaçãoCriada.
+- [x] Gravar solicitação e evento na mesma transação usando Outbox.
+- [x] Publicar eventos pendentes no Kafka.
+- [x] Limitar tentativas de publicação e registrar o último erro.
 
 ## Etapa 4 — Notification Worker
 
-- [ ] Consumir eventos do Kafka.
-- [ ] Processar e registrar notificações fictícias.
-- [ ] Persistir notificações em banco próprio.
-- [ ] Tratar mensagens inválidas e falhas de processamento.
+- [x] Consumir eventos do Kafka.
+- [x] Persistir notificações em banco próprio.
+- [x] Aplicar idempotência pelo identificador do evento.
+- [x] Confirmar o offset somente após persistência.
+- [x] Encaminhar mensagens inválidas para dead-letter topic.
 
-## Etapa 5 — Confiabilidade
+## Etapa 5 — Validação e finalização
 
-- [ ] Implementar idempotência.
-- [ ] Implementar Transactional Outbox.
-- [ ] Implementar retry limitado.
-- [ ] Implementar dead-letter topic.
-- [ ] Testar duplicidade, indisponibilidade e recuperação.
+- [x] Configurar build e testes no GitHub Actions.
+- [x] Validar snapshots das migrations automaticamente.
+- [x] Documentar o contrato de eventos.
+- [x] Documentar execução local e exemplos HTTP.
+- [x] Validar o fluxo completo entre os serviços com PostgreSQL e Kafka no GitHub Actions.
+- [ ] Executar o fluxo completo no ambiente local com Visual Studio Community.
+- [ ] Revisar implementação no Visual Studio Community.
 
-## Etapa 6 — Finalização
+## Fora do escopo
 
-- [ ] Completar testes automatizados relevantes.
-- [ ] Documentar como executar toda a solução.
-- [ ] Validar build, testes e fluxo completo localmente.
-- [ ] Revisar README e registrar limitações conhecidas.
+Autenticação, interface Web, API Gateway, Redis, MongoDB, terceiro microsserviço, Saga e observabilidade distribuída avançada não fazem parte deste MVP.
 
-## Regra de escopo
+## Limitações conhecidas
 
-Não adicionar autenticação, interface Web, API Gateway, Redis, MongoDB, terceiro microsserviço ou projetos separados por camada durante o MVP. Qualquer mudança de escopo exige justificativa e decisão explícita.
+- Kafka e PostgreSQL são executados localmente por Docker Compose; os processos .NET são iniciados pelo desenvolvedor.
+- A Outbox tenta publicar até dez vezes. Eventos que esgotarem as tentativas permanecem registrados para inspeção manual.
+- O Worker aplica retry contínuo para falhas temporárias de persistência e não confirma o offset até concluir o processamento.
+- A DLQ trata mensagens malformadas. Não existe ferramenta de replay automático no MVP.
+- Os dados são fictícios e as regras de crédito são demonstrativas, sem análise financeira real.

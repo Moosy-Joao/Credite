@@ -1,99 +1,217 @@
 # Credite
 
-Projeto educacional de Back-End com C# 14, .NET 10 e dois microsserviços. O sistema simula o registro de solicitações de crédito e o processamento assíncrono de notificações.
+Projeto educacional de Back-End com C# 14, .NET 10 e dois microsserviços. O sistema registra solicitações fictícias de crédito e processa notificações de forma assíncrona.
 
-O Credite usa somente dados fictícios. Não realiza análise financeira real, não concede crédito e não deve receber dados pessoais ou financeiros reais.
-
-## Objetivo
-
-Aprender a construir e integrar dois microsserviços independentes, mantendo uma aplicação pequena o suficiente para ser concluída e compreendida.
+O Credite não realiza análise financeira real, não concede crédito e não deve receber dados pessoais ou financeiros reais.
 
 ## Arquitetura
 
-| Microsserviço | Responsabilidade | Persistência |
+| Microsserviço | Responsabilidade | Banco |
 |---|---|---|
-| Credit API | Cadastrar clientes fictícios e gerenciar solicitações de crédito | PostgreSQL próprio |
-| Notification Worker | Consumir eventos do Credit e registrar notificações | PostgreSQL próprio |
+| Credit API | Cadastro de clientes fictícios, solicitações e publicação de eventos | PostgreSQL credito |
+| Notification Worker | Consumo de eventos e registro idempotente de notificações | PostgreSQL notificacoes |
 
-O Credit publica eventos no Apache Kafka. O Notification consome esses eventos sem depender diretamente do código ou do banco do Credit.
+O Credit grava a solicitação e um evento pendente na mesma transação. Um processo de Outbox publica os eventos no Apache Kafka. O Notification consome os eventos, registra a notificação e confirma o offset somente após persistir os dados.
 
-Cada serviço é dono dos próprios dados. Os dois bancos podem usar a mesma instância local do PostgreSQL, mas serão bancos separados.
+Cada serviço é dono do próprio banco. Os bancos compartilham apenas a instância PostgreSQL no ambiente local, não tabelas ou migrations.
 
 ## Tecnologias
 
 - C# 14 e .NET 10
 - ASP.NET Core Minimal APIs
-- PostgreSQL e Entity Framework Core
-- Apache Kafka
+- EF Core 10 e PostgreSQL
+- Apache Kafka e Confluent.Kafka
 - Worker Service
+- OpenAPI e Scalar
 - xUnit
 - Docker Compose
-
-As dependências serão adicionadas quando cada etapa precisar delas. Não manteremos pacotes ou infraestrutura sem uso.
+- GitHub Actions
 
 ## Estrutura
 
-```text
+~~~text
 Credite/
 ├── src/
-│   └── Services/
-│       ├── Credit/
-│       │   └── Credite.Credit.Api/
-│       └── Notification/
-│           └── Credite.Notification.Worker/
+│   ├── Services/
+│   │   ├── Credit/Credite.Credit.Api/
+│   │   └── Notification/Credite.Notification.Worker/
+│   └── Tests/Credite.Tests/
+├── infra/postgres/init.sql
 ├── docs/
-│   ├── ARQUITETURA.md
-│   ├── ROADMAP.md
-│   └── adr/
-│       └── 0001-dois-microsservicos.md
-├── Credite.slnx
-├── Directory.Build.props
-└── Directory.Packages.props
-```
+├── docker-compose.yml
+└── Credite.slnx
+~~~
 
-Cada microsserviço começa com um único projeto executável. Pastas e camadas adicionais só serão criadas quando houver necessidade concreta.
+Cada microsserviço possui um único projeto executável. As pastas internas separam responsabilidades sem criar projetos de camadas prematuramente.
 
-## Executar
+## Pré-requisitos
 
-Requisito: .NET 10 SDK.
+- .NET 10 SDK
+- Docker Desktop com Docker Compose
+- Visual Studio Community com suporte a .NET
 
-```powershell
+## Executar localmente
+
+Na raiz do repositório, suba a infraestrutura:
+
+~~~powershell
+docker compose up -d
+docker compose ps
+~~~
+
+Aguarde o PostgreSQL e o Kafka ficarem disponíveis. Na primeira inicialização, o PostgreSQL cria os bancos credito e notificacoes.
+
+Restaure as dependências, as ferramentas locais, compile e teste:
+
+~~~powershell
 dotnet restore Credite.slnx
+dotnet tool restore
 dotnet build Credite.slnx
-```
+dotnet test Credite.slnx
+~~~
 
-Para iniciar a API:
+Inicie a API em um terminal:
 
-```powershell
+~~~powershell
 dotnet run --project src/Services/Credit/Credite.Credit.Api
-```
+~~~
 
-A API disponibiliza `GET /health` para verificar se o processo está ativo.
+A API aplica suas migrations automaticamente na inicialização. A documentação interativa fica em /scalar/v1, na URL indicada pelo terminal.
 
-Para iniciar o Worker:
+Inicie o Worker em outro terminal:
 
-```powershell
+~~~powershell
 dotnet run --project src/Services/Notification/Credite.Notification.Worker
-```
+~~~
 
-A integração com PostgreSQL e Kafka será implementada nas etapas do roadmap. Até lá, os projetos são somente esqueletos executáveis.
+O Worker também aplica suas migrations automaticamente e começa a consumir o tópico Kafka. Os dois serviços carregam as configurações locais a partir dos arquivos appsettings distribuídos junto aos executáveis, independentemente da pasta atual do terminal.
+
+Para encerrar a infraestrutura:
+
+~~~powershell
+docker compose down
+~~~
+
+Para apagar também os dados locais do PostgreSQL:
+
+~~~powershell
+docker compose down -v
+~~~
+
+O segundo comando remove permanentemente os dados armazenados no volume local.
+
+## Fluxo de uso
+
+### 1. Cadastrar cliente
+
+~~~http
+POST /clientes
+Content-Type: application/json
+
+{
+  "nome": "Ana Silva",
+  "email": "ana@exemplo.com"
+}
+~~~
+
+### 2. Criar solicitação de crédito
+
+Use o id retornado no cadastro:
+
+~~~http
+POST /solicitacoes
+Content-Type: application/json
+
+{
+  "clienteId": "COLOQUE-O-ID-DO-CLIENTE",
+  "valorSolicitado": 2500.00
+}
+~~~
+
+O valor permitido é de R$ 100,00 a R$ 10.000,00. A solicitação inicia com status EmAnalise.
+
+### 3. Consultar solicitação
+
+~~~http
+GET /solicitacoes/ID-DA-SOLICITACAO
+~~~
+
+Também é possível listar solicitações de um cliente:
+
+~~~http
+GET /solicitacoes?clienteId=ID-DO-CLIENTE
+~~~
+
+### 4. Verificar notificação
+
+Após o evento ser publicado e consumido, a notificação fica registrada no banco notificacoes, tabela notificacao.notificacoes. O Worker informa o processamento no log.
+
+## Endpoints
+
+| Método | Rota | Descrição |
+|---|---|---|
+| GET | /health | Verifica a conexão com o banco do Credit |
+| POST | /clientes | Cadastra cliente fictício |
+| GET | /clientes/{id} | Consulta cliente |
+| POST | /solicitacoes | Cria solicitação e evento Outbox |
+| GET | /solicitacoes | Lista solicitações, opcionalmente filtradas por cliente |
+| GET | /solicitacoes/{id} | Consulta solicitação |
+
+## Migrations
+
+As migrations são independentes por microsserviço. Cada projeto possui uma fábrica de design-time para que o EF Core consiga criar o DbContext sem iniciar o serviço.
+
+Verifique se os snapshots correspondem aos modelos:
+
+~~~powershell
+dotnet ef migrations has-pending-model-changes --project src/Services/Credit/Credite.Credit.Api/Credite.Credit.Api.csproj
+dotnet ef migrations has-pending-model-changes --project src/Services/Notification/Credite.Notification.Worker/Credite.Notification.Worker.csproj
+~~~
+
+Para criar uma migration no Credit:
+
+~~~powershell
+dotnet ef migrations add NomeDaMigracao --project src/Services/Credit/Credite.Credit.Api/Credite.Credit.Api.csproj --output-dir Dados
+~~~
+
+Para criar uma migration no Notification:
+
+~~~powershell
+dotnet ef migrations add NomeDaMigracao --project src/Services/Notification/Credite.Notification.Worker/Credite.Notification.Worker.csproj --output-dir Dados
+~~~
+
+Revise sempre o código gerado antes de aplicar ou enviar uma migration.
+
+## Mensageria e consistência
+
+- Tópico principal: solicitacoes.credito.criada.
+- Dead-letter topic: solicitacoes.credito.criada.dlq.
+- A Outbox evita perder o evento entre a gravação da solicitação e a publicação no Kafka.
+- O Notification usa eventoId único para impedir notificações duplicadas.
+- O offset só é confirmado após persistência ou envio bem-sucedido para a DLQ.
+
+Consulte docs/CONTRATOS-EVENTOS.md para o payload.
 
 ## Convenções
 
 - Solução, projetos, namespaces e pastas em inglês.
-- Identificadores escritos pelo projeto em C# em português, seguindo as convenções oficiais.
-- Tabelas e colunas em português com `snake_case`.
-- Documentação e mensagens de commit em português.
+- Identificadores internos em C# em português, seguindo as convenções oficiais.
+- Tabelas e colunas em português com snake_case.
+- Documentação e commits em português.
 - Preferir recursos nativos do .NET e evitar abstrações prematuras.
 
-## Escopo excluído
+## Limitações do MVP
 
-Não fazem parte do projeto atual: Identity/autenticação, API Gateway, interface Web, Redis, MongoDB, múltiplos serviços de domínio, Clean Architecture com projetos separados por camada, Saga e observabilidade distribuída avançada.
-
-Esses itens não serão adicionados sem uma necessidade de aprendizado claramente definida.
+- Não há autenticação, autorização ou interface Web.
+- A análise de crédito é fictícia; a API apenas registra a solicitação como EmAnalise.
+- A Outbox limita a dez tentativas e exige inspeção manual após esgotá-las.
+- O Worker repete falhas temporárias de persistência até conseguir processar a mensagem.
+- A DLQ não possui ferramenta de replay automático.
+- A configuração do Docker Compose é exclusivamente para desenvolvimento local.
 
 ## Documentação
 
-- [Arquitetura](docs/ARQUITETURA.md)
-- [Roadmap](docs/ROADMAP.md)
-- [ADR-0001 — Dois microsserviços](docs/adr/0001-dois-microsservicos.md)
+- docs/ARQUITETURA.md
+- docs/ROADMAP.md
+- docs/CONTRATOS-EVENTOS.md
+- docs/adr/0001-dois-microsservicos.md
