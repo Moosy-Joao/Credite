@@ -135,7 +135,7 @@ Os testes automatizados cobrem essencialmente regras das entidades. O workflow j
 Ampliar testes unitários para limites de paginação, normalização e classificação de falhas. Criar testes de integração executáveis no CI para:
 - conflito de e-mail, incluindo corrida concorrente;
 - paginação e filtro por cliente;
-- reivindicação de Outbox por duas instâncias e recuperação de lease;
+- reivindicação concorrente da Outbox por duas instâncias e retomada após rollback;
 - incremento de tentativas e liberação após falha;
 - persistência idempotente de notificações;
 - duplicidade por constraint;
@@ -160,7 +160,7 @@ A documentação corresponde ao código e aos testes, sem prometer exactly-once 
 ## 10. Ordem de implementação
 
 1. Implementar e testar tratamento de conflito no cadastro.
-2. Implementar lease e reivindicação concorrente da Outbox, incluindo migration.
+2. Implementar reivindicação concorrente da Outbox com bloqueio transacional de linha e timeout Kafka limitado.
 3. Implementar paginação e testes.
 4. Fortalecer idempotência do consumidor.
 5. Completar metadados e tratamento de falhas da DLQ.
