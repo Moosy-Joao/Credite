@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace Credite.Notification.Worker.Dados;
 
@@ -36,26 +37,37 @@ public sealed class MigracaoInicial : Migration
 
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.DropTable(name: "notificacoes", schema: "notificacao");
+        migrationBuilder.DropTable("notificacoes", "notificacao");
     }
+
+    protected override void BuildTargetModel(ModelBuilder modelo) =>
+        ModeloNotificacoes.Configurar(modelo);
 }
 
 [DbContext(typeof(NotificacoesDbContext))]
 public sealed class NotificacoesDbContextModelSnapshot : ModelSnapshot
 {
-    protected override void BuildModel(ModelBuilder modelo)
+    protected override void BuildModel(ModelBuilder modelo) =>
+        ModeloNotificacoes.Configurar(modelo);
+}
+
+internal static class ModeloNotificacoes
+{
+    public static void Configurar(ModelBuilder modelo)
     {
-        modelo.HasAnnotation("ProductVersion", "10.0.15");
         modelo.HasDefaultSchema("notificacao");
+        modelo.HasAnnotation("ProductVersion", "10.0.15");
+        modelo.HasAnnotation("Relational:MaxIdentifierLength", 63);
+        NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelo);
 
         modelo.Entity("Credite.Notification.Worker.Dominio.Notificacao", entidade =>
         {
-            entidade.Property<Guid>("Id").HasColumnType("uuid").HasColumnName("id");
-            entidade.Property<Guid>("ClienteId").HasColumnType("uuid").HasColumnName("cliente_id");
-            entidade.Property<DateTimeOffset>("CriadoEm").HasColumnType("timestamp with time zone").HasColumnName("criado_em");
-            entidade.Property<Guid>("EventoId").HasColumnType("uuid").HasColumnName("evento_id");
-            entidade.Property<string>("Mensagem").HasMaxLength(500).HasColumnType("character varying(500)").HasColumnName("mensagem");
-            entidade.Property<Guid>("SolicitacaoId").HasColumnType("uuid").HasColumnName("solicitacao_id");
+            entidade.Property<Guid>("Id").ValueGeneratedNever().HasColumnType("uuid").HasColumnName("id");
+            entidade.Property<Guid>("ClienteId").IsRequired().HasColumnType("uuid").HasColumnName("cliente_id");
+            entidade.Property<DateTimeOffset>("CriadoEm").IsRequired().HasColumnType("timestamp with time zone").HasColumnName("criado_em");
+            entidade.Property<Guid>("EventoId").IsRequired().HasColumnType("uuid").HasColumnName("evento_id");
+            entidade.Property<string>("Mensagem").IsRequired().HasMaxLength(500).HasColumnType("character varying(500)").HasColumnName("mensagem");
+            entidade.Property<Guid>("SolicitacaoId").IsRequired().HasColumnType("uuid").HasColumnName("solicitacao_id");
             entidade.HasKey("Id").HasName("pk_notificacoes");
             entidade.HasIndex("EventoId").IsUnique().HasDatabaseName("ix_notificacoes_evento_id");
             entidade.ToTable("notificacoes", "notificacao");

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace Credite.Credit.Api.Dados;
 
@@ -75,22 +76,33 @@ public sealed class MigracaoInicial : Migration
         migrationBuilder.DropTable("solicitacoes_credito", "credito");
         migrationBuilder.DropTable("clientes", "credito");
     }
+
+    protected override void BuildTargetModel(ModelBuilder modelo) =>
+        ModeloCredite.Configurar(modelo);
 }
 
 [DbContext(typeof(CrediteDbContext))]
 public sealed class CrediteDbContextModelSnapshot : ModelSnapshot
 {
-    protected override void BuildModel(ModelBuilder modelo)
+    protected override void BuildModel(ModelBuilder modelo) =>
+        ModeloCredite.Configurar(modelo);
+}
+
+internal static class ModeloCredite
+{
+    public static void Configurar(ModelBuilder modelo)
     {
-        modelo.HasAnnotation("ProductVersion", "10.0.15");
         modelo.HasDefaultSchema("credito");
+        modelo.HasAnnotation("ProductVersion", "10.0.15");
+        modelo.HasAnnotation("Relational:MaxIdentifierLength", 63);
+        NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelo);
 
         modelo.Entity("Credite.Credit.Api.Dominio.Cliente", entidade =>
         {
-            entidade.Property<Guid>("Id").HasColumnType("uuid").HasColumnName("id");
-            entidade.Property<string>("Email").HasMaxLength(254).HasColumnType("character varying(254)").HasColumnName("email");
-            entidade.Property<string>("Nome").HasMaxLength(100).HasColumnType("character varying(100)").HasColumnName("nome");
-            entidade.Property<DateTimeOffset>("CriadoEm").HasColumnType("timestamp with time zone").HasColumnName("criado_em");
+            entidade.Property<Guid>("Id").ValueGeneratedNever().HasColumnType("uuid").HasColumnName("id");
+            entidade.Property<string>("Email").IsRequired().HasMaxLength(254).HasColumnType("character varying(254)").HasColumnName("email");
+            entidade.Property<string>("Nome").IsRequired().HasMaxLength(100).HasColumnType("character varying(100)").HasColumnName("nome");
+            entidade.Property<DateTimeOffset>("CriadoEm").IsRequired().HasColumnType("timestamp with time zone").HasColumnName("criado_em");
             entidade.HasKey("Id").HasName("pk_clientes");
             entidade.HasIndex("Email").IsUnique().HasDatabaseName("ix_clientes_email");
             entidade.ToTable("clientes", "credito");
@@ -98,12 +110,12 @@ public sealed class CrediteDbContextModelSnapshot : ModelSnapshot
 
         modelo.Entity("Credite.Credit.Api.Dominio.EventoPendente", entidade =>
         {
-            entidade.Property<Guid>("Id").HasColumnType("uuid").HasColumnName("id");
-            entidade.Property<string>("Conteudo").HasColumnType("text").HasColumnName("conteudo");
-            entidade.Property<DateTimeOffset>("CriadoEm").HasColumnType("timestamp with time zone").HasColumnName("criado_em");
+            entidade.Property<Guid>("Id").ValueGeneratedNever().HasColumnType("uuid").HasColumnName("id");
+            entidade.Property<string>("Conteudo").IsRequired().HasColumnType("text").HasColumnName("conteudo");
+            entidade.Property<DateTimeOffset>("CriadoEm").IsRequired().HasColumnType("timestamp with time zone").HasColumnName("criado_em");
             entidade.Property<DateTimeOffset?>("PublicadoEm").HasColumnType("timestamp with time zone").HasColumnName("publicado_em");
-            entidade.Property<int>("Tentativas").HasColumnType("integer").HasColumnName("tentativas");
-            entidade.Property<string>("Tipo").HasMaxLength(150).HasColumnType("character varying(150)").HasColumnName("tipo");
+            entidade.Property<int>("Tentativas").IsRequired().HasColumnType("integer").HasColumnName("tentativas");
+            entidade.Property<string>("Tipo").IsRequired().HasMaxLength(150).HasColumnType("character varying(150)").HasColumnName("tipo");
             entidade.Property<string>("UltimoErro").HasMaxLength(500).HasColumnType("character varying(500)").HasColumnName("ultimo_erro");
             entidade.HasKey("Id").HasName("pk_eventos_pendentes");
             entidade.HasIndex("PublicadoEm", "CriadoEm").HasDatabaseName("ix_eventos_pendentes_publicacao");
@@ -112,11 +124,11 @@ public sealed class CrediteDbContextModelSnapshot : ModelSnapshot
 
         modelo.Entity("Credite.Credit.Api.Dominio.SolicitacaoCredito", entidade =>
         {
-            entidade.Property<Guid>("Id").HasColumnType("uuid").HasColumnName("id");
-            entidade.Property<Guid>("ClienteId").HasColumnType("uuid").HasColumnName("cliente_id");
-            entidade.Property<DateTimeOffset>("CriadoEm").HasColumnType("timestamp with time zone").HasColumnName("criado_em");
-            entidade.Property<string>("Status").HasMaxLength(30).HasColumnType("character varying(30)").HasColumnName("status");
-            entidade.Property<decimal>("ValorSolicitado").HasPrecision(10, 2).HasColumnType("numeric(10,2)").HasColumnName("valor_solicitado");
+            entidade.Property<Guid>("Id").ValueGeneratedNever().HasColumnType("uuid").HasColumnName("id");
+            entidade.Property<Guid>("ClienteId").IsRequired().HasColumnType("uuid").HasColumnName("cliente_id");
+            entidade.Property<DateTimeOffset>("CriadoEm").IsRequired().HasColumnType("timestamp with time zone").HasColumnName("criado_em");
+            entidade.Property<string>("Status").IsRequired().HasMaxLength(30).HasColumnType("character varying(30)").HasColumnName("status");
+            entidade.Property<decimal>("ValorSolicitado").IsRequired().HasPrecision(10, 2).HasColumnType("numeric(10,2)").HasColumnName("valor_solicitado");
             entidade.HasKey("Id").HasName("pk_solicitacoes_credito");
             entidade.HasIndex("ClienteId").HasDatabaseName("ix_solicitacoes_credito_cliente_id");
             entidade.ToTable("solicitacoes_credito", "credito");
