@@ -1,12 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
-
   <PropertyGroup>
-    <UserSecretsId>6797ffb5-d2c3-4705-ba11-2cbc6ae2bb2d</UserSecretsId>
+    <RootNamespace>Credite.Credit.Api</RootNamespace>
   </PropertyGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="../Credite.Credit.Application/Credite.Credit.Application.csproj" />
-    <ProjectReference Include="../Credite.Credit.Infrastructure/Credite.Credit.Infrastructure.csproj" />
-  </ItemGroup>
-
 </Project>

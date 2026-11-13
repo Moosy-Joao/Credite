@@ -1,4 +1,4 @@
-name: Validação .NET
+name: .NET
 
 on:
   push:
@@ -10,14 +10,13 @@ permissions:
   contents: read
 
 jobs:
-  build-and-test:
+  build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Baixar o código
+      - name: Baixar código
         uses: actions/checkout@v4
 
-      - name: Configurar .NET 10
+      - name: Configurar .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
@@ -27,6 +26,3 @@ jobs:
 
       - name: Compilar solução
         run: dotnet build Credite.slnx --no-restore --configuration Release
-
-      - name: Executar testes
-        run: dotnet test Credite.slnx --no-build --configuration Release

@@ -1,94 +1,99 @@
 # Credite
 
-Plataforma educacional de gestão de solicitações de crédito fictícias, desenvolvida com C# 14 e .NET 10. Não realiza análise financeira real, não concede crédito e não utiliza dados pessoais ou financeiros reais.
+Projeto educacional de Back-End com C# 14, .NET 10 e dois microsserviços. O sistema simula o registro de solicitações de crédito e o processamento assíncrono de notificações.
 
-## Arquitetura aprovada
+O Credite usa somente dados fictícios. Não realiza análise financeira real, não concede crédito e não deve receber dados pessoais ou financeiros reais.
 
-A arquitetura-alvo possui quatro microsserviços:
+## Objetivo
 
-| Serviço | Responsabilidade | Persistência |
+Aprender a construir e integrar dois microsserviços independentes, mantendo uma aplicação pequena o suficiente para ser concluída e compreendida.
+
+## Arquitetura
+
+| Microsserviço | Responsabilidade | Persistência |
 |---|---|---|
-| Identity | Contas internas, credenciais, perfis e identidade | PostgreSQL próprio |
-| Customer | Cadastro e manutenção de clientes fictícios | PostgreSQL próprio |
-| Credit | Solicitações, simulações demonstrativas, avaliações e histórico | PostgreSQL próprio |
-| Notification | Consumo de eventos e processamento de notificações demonstrativas | MongoDB exclusivo |
+| Credit API | Cadastrar clientes fictícios e gerenciar solicitações de crédito | PostgreSQL próprio |
+| Notification Worker | Consumir eventos do Credit e registrar notificações | PostgreSQL próprio |
 
-Cada serviço é dono exclusivo de seus dados. Não há banco, schema, DbContext, migrations ou transação compartilhados entre serviços.
+O Credit publica eventos no Apache Kafka. O Notification consome esses eventos sem depender diretamente do código ou do banco do Credit.
 
-Apache Kafka conecta Credit a Notification. Credit grava a alteração de negócio e o evento pendente na mesma transação PostgreSQL por meio de Transactional Outbox. Notification consome os eventos com idempotência, retry limitado e dead-letter topic. Não se promete exactly-once ponta a ponta.
-
-A interface administrativa .NET permanece como cliente da plataforma, não como quinto microsserviço de negócio, e não acessa bancos diretamente. A integração da interface, autenticação distribuída, comunicação síncrona entre serviços e eventual API Gateway dependem de ADR-0015, ainda não aprovado.
+Cada serviço é dono dos próprios dados. Os dois bancos podem usar a mesma instância local do PostgreSQL, mas serão bancos separados.
 
 ## Tecnologias
 
-| Área | Tecnologia |
-|---|---|
-| Linguagem/plataforma | C# 14 / .NET 10 |
-| APIs | ASP.NET Core Web API |
-| Bancos relacionais | PostgreSQL por serviço |
-| ORM | EF Core 10 + Npgsql |
-| Banco documental | MongoDB exclusivo do Notification |
-| Mensageria | Apache Kafka |
-| Cliente Kafka .NET | Confluent.Kafka, versão estável compatível |
-| Interface | ASP.NET Core MVC / Razor |
-| Testes | xUnit e testes de integração com bancos descartáveis |
-| Observabilidade | ILogger, OpenTelemetry e Health Checks |
-| Ambiente local | Docker / Docker Compose |
+- C# 14 e .NET 10
+- ASP.NET Core Minimal APIs
+- PostgreSQL e Entity Framework Core
+- Apache Kafka
+- Worker Service
+- xUnit
+- Docker Compose
 
-## Convenções de nomenclatura
+As dependências serão adicionadas quando cada etapa precisar delas. Não manteremos pacotes ou infraestrutura sem uso.
 
-- Solução, projetos, namespaces e pastas arquiteturais: inglês.
-- Identificadores internos C#: português, respeitando as convenções oficiais.
-- Classes, métodos e propriedades: PascalCase (Emprestimo, CriarEmprestimoAsync, ValorTotal).
-- Interfaces: I + PascalCase (IRepositorioEmprestimo).
-- Parâmetros e variáveis: camelCase (idCliente, valorEmprestimo).
-- Campos privados: _camelCase.
-- Métodos assíncronos: sufixo Async.
-- Tabelas e colunas: português em snake_case (emprestimos, data_contratacao).
-- Testes: português e nomes descritivos (DeveCriarEmprestimoComDadosValidos).
-- Tipos e APIs oficiais permanecem em inglês (DbContext, CancellationToken, Task).
-- Documentação e mensagens de commit: português.
+## Estrutura
 
-## Escopo
+```text
+Credite/
+├── src/
+│   └── Services/
+│       ├── Credit/
+│       │   └── Credite.Credit.Api/
+│       └── Notification/
+│           └── Credite.Notification.Worker/
+├── docs/
+│   ├── ARQUITETURA.md
+│   ├── ROADMAP.md
+│   └── adr/
+│       └── 0001-dois-microsservicos.md
+├── Credite.slnx
+├── Directory.Build.props
+└── Directory.Packages.props
+```
 
-Os perfis internos previstos são Administrador, Analista e Operador. O fluxo funcional abrange clientes fictícios, solicitações, simulações e avaliações demonstrativas e histórico. Notification faz parte da arquitetura, mas canais externos reais não estão automaticamente autorizados.
+Cada microsserviço começa com um único projeto executável. Pastas e camadas adicionais só serão criadas quando houver necessidade concreta.
 
-Consulte [requisitos funcionais](docs/REQUISITOS-MVP.md), [arquitetura](docs/ARQUITETURA.md) e [plano de reestruturação](docs/PLANO-REESTRUTURACAO-IMPLEMENTACAO.md).
+## Executar
 
-## Estado do repositório
+Requisito: .NET 10 SDK.
 
-A validação local inicial foi concluída em 2026-11-01: clone, abertura de Credite.slnx no Visual Studio Community, SDK .NET 10, restore, build e testes com sucesso. Não repetir essa etapa como bloqueio.
+```powershell
+dotnet restore Credite.slnx
+dotnet build Credite.slnx
+```
 
-A branch documental é docs/foco-backend-csharp-net. O código existente foi criado sob decisões anteriores de monólito modular e SQL Server e precisa ser auditado e adaptado. Esta documentação não afirma que os quatro serviços já estejam implementados.
+Para iniciar a API:
+
+```powershell
+dotnet run --project src/Services/Credit/Credite.Credit.Api
+```
+
+A API disponibiliza `GET /health` para verificar se o processo está ativo.
+
+Para iniciar o Worker:
+
+```powershell
+dotnet run --project src/Services/Notification/Credite.Notification.Worker
+```
+
+A integração com PostgreSQL e Kafka será implementada nas etapas do roadmap. Até lá, os projetos são somente esqueletos executáveis.
+
+## Convenções
+
+- Solução, projetos, namespaces e pastas em inglês.
+- Identificadores escritos pelo projeto em C# em português, seguindo as convenções oficiais.
+- Tabelas e colunas em português com `snake_case`.
+- Documentação e mensagens de commit em português.
+- Preferir recursos nativos do .NET e evitar abstrações prematuras.
+
+## Escopo excluído
+
+Não fazem parte do projeto atual: Identity/autenticação, API Gateway, interface Web, Redis, MongoDB, múltiplos serviços de domínio, Clean Architecture com projetos separados por camada, Saga e observabilidade distribuída avançada.
+
+Esses itens não serão adicionados sem uma necessidade de aprendizado claramente definida.
 
 ## Documentação
 
 - [Arquitetura](docs/ARQUITETURA.md)
-- [Plano de reestruturação](docs/PLANO-REESTRUTURACAO-IMPLEMENTACAO.md)
-- [Requisitos funcionais](docs/REQUISITOS-MVP.md)
 - [Roadmap](docs/ROADMAP.md)
-- [Governança](docs/PLANEJAMENTO-E-GOVERNANCA.md)
-- [Plano de aprendizado](docs/PLANO-DE-APRENDIZADO-BACKEND.md)
-- [Primeiro incremento — especificação anterior a revisar](docs/PRIMEIRO-INCREMENTO.md)
-- [ADR-0001 — SQL Server, histórico substituído](docs/adr/0001-sql-server-e-estrategia-de-persistencia.md)
-- [ADR-0012 — monólito modular, histórico substituído](docs/adr/0012-evolucao-para-microservicos-e-mensageria.md)
-- [ADR-0013 — laboratórios, histórico parcialmente substituído](docs/adr/0013-laboratorios-postgresql-mongodb-kafka.md)
-- [ADR-0014 — arquitetura atual aprovada](docs/adr/0014-microservicos-persistencia-e-mensageria.md)
-
-ADR-0015 depende de confirmação explícita. Não presumir suas decisões.
-
-## Validação da solução existente
-
-Os comandos abaixo validam a solução atualmente versionada; não comprovam por si só a arquitetura-alvo:
-
-~~~bash
-dotnet restore Credite.slnx
-dotnet build Credite.slnx
-dotnet test Credite.slnx
-~~~
-
-A topologia final e os comandos de execução serão atualizados após a reestruturação e a definição das pendências de ADR-0015.
-
-## Aviso
-
-O Credite é educacional. Não é uma instituição financeira e não deve ser utilizado para decisões financeiras reais.
+- [ADR-0001 — Dois microsserviços](docs/adr/0001-dois-microsservicos.md)
