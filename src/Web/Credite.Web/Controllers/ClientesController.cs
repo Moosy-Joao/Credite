@@ -53,6 +53,10 @@ public sealed class ClientesController(ICrediteApiClient api) : Controller
             if (modelo.Cliente is null)
                 modelo.Mensagem = "Nenhum cliente foi encontrado com esse identificador.";
         }
+        catch (CrediteApiException excecao)
+        {
+            modelo.Mensagem = excecao.Message;
+        }
         catch (HttpRequestException)
         {
             modelo.Mensagem = "Não foi possível conectar à Credit API. Verifique se ela está em execução.";
