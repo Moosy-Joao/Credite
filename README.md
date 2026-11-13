@@ -11,7 +11,7 @@ O Credite não realiza análise financeira real, não concede crédito e não de
 | Credit API | Cadastro de clientes fictícios, solicitações e publicação de eventos | PostgreSQL credito |
 | Notification Worker | Consumo de eventos e registro idempotente de notificações | PostgreSQL notificacoes |
 
-O Credit grava a solicitação e um evento pendente na mesma transação. Um processo de Outbox publica os eventos no Apache Kafka. O Notification consome os eventos, registra a notificação e confirma o offset somente após persistir os dados.
+O Credit grava a solicitação e um evento pendente na mesma transação. Um processo de Outbox publica os eventos no Apache Kafka com bloqueio transacional de linha para coordenar instâncias concorrentes. A entrega é at-least-once, e o Notification aplica idempotência antes de confirmar o offset.
 
 Cada serviço é dono do próprio banco. Os bancos compartilham apenas a instância PostgreSQL no ambiente local, não tabelas ou migrations.
 
@@ -136,7 +136,7 @@ O valor permitido é de R$ 100,00 a R$ 10.000,00. A solicitação inicia com sta
 GET /solicitacoes/ID-DA-SOLICITACAO
 ~~~
 
-Também é possível listar solicitações de um cliente:
+A listagem usa página 1 e tamanho 20 por padrão, aceita tamanho máximo de 100 e retorna os metadados de paginação (`itens`, `pagina`, `tamanhoPagina`, `totalRegistros` e `totalPaginas`). Também é possível filtrar por cliente:
 
 ~~~http
 GET /solicitacoes?clienteId=ID-DO-CLIENTE&pagina=1&tamanhoPagina=20
@@ -151,6 +151,7 @@ Após o evento ser publicado e consumido, a notificação fica registrada no ban
 | Método | Rota | Descrição |
 |---|---|---|
 | GET | /health/live | Verifica se o processo da API está ativo |
+| GET | /health | Verifica prontidão de PostgreSQL e Kafka |
 | GET | /health | Verifica prontidão de PostgreSQL e Kafka |
 | POST | /clientes | Cadastra cliente fictício |
 | GET | /clientes/{id} | Consulta cliente |
@@ -209,7 +210,7 @@ Consulte docs/CONTRATOS-EVENTOS.md para o payload.
 
 - Não há autenticação, autorização ou interface Web.
 - A análise de crédito é fictícia; a API apenas registra a solicitação como EmAnalise.
-- A Outbox limita a dez tentativas e exige inspeção manual após esgotá-las.
+- A Outbox limita a dez tentativas e exige inspeção manual após esgotá-las. O publicador mantém um bloqueio transacional de linha durante o envio ao Kafka; a entrega continua sendo at-least-once.
 - O Worker repete falhas temporárias de persistência até conseguir processar a mensagem.
 - A DLQ não possui ferramenta de replay automático. As mensagens inválidas incluem headers com tópico, partição, offset, horário e motivo da falha.
 - A configuração do Docker Compose é exclusivamente para desenvolvimento local.
