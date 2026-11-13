@@ -9,6 +9,7 @@ namespace Credite.Credit.Api.Endpoints;
 public static class SolicitacoesEndpoints
 {
     private const string TipoEvento = "SolicitacaoCreditoCriada";
+    private static readonly JsonSerializerOptions OpcoesJson = new(JsonSerializerDefaults.Web);
 
     public static IEndpointRouteBuilder MapSolicitacoesEndpoints(this IEndpointRouteBuilder rotas)
     {
@@ -39,7 +40,7 @@ public static class SolicitacoesEndpoints
 
             banco.Solicitacoes.Add(solicitacao);
             banco.EventosPendentes.Add(new EventoPendente(
-                evento.EventoId, TipoEvento, JsonSerializer.Serialize(evento)));
+                evento.EventoId, TipoEvento, JsonSerializer.Serialize(evento, OpcoesJson)));
 
             // Solicitação e evento são gravados na mesma transação do PostgreSQL.
             await banco.SaveChangesAsync(cancellationToken);

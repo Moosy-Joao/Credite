@@ -17,6 +17,7 @@ public sealed class ConsumidorEventos(
     IConfiguration configuracao,
     ILogger<ConsumidorEventos> logger) : BackgroundService
 {
+    private static readonly JsonSerializerOptions OpcoesJson = new(JsonSerializerDefaults.Web);
     private readonly string _servidores = configuracao["Kafka:BootstrapServers"] ?? "localhost:9092";
     private readonly string _topico = configuracao["Kafka:TopicoSolicitacoes"] ?? "solicitacoes.credito.criada";
     private readonly string _topicoFalhas = configuracao["Kafka:TopicoFalhas"] ?? "solicitacoes.credito.criada.dlq";
@@ -92,7 +93,7 @@ public sealed class ConsumidorEventos(
 
         try
         {
-            evento = JsonSerializer.Deserialize<EventoSolicitacaoCriada>(mensagem.Message.Value);
+            evento = JsonSerializer.Deserialize<EventoSolicitacaoCriada>(mensagem.Message.Value, OpcoesJson);
 
             if (evento is null || evento.EventoId == Guid.Empty ||
                 evento.SolicitacaoId == Guid.Empty || evento.ClienteId == Guid.Empty)

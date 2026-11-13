@@ -27,5 +27,88 @@ jobs:
       - name: Compilar solução
         run: dotnet build Credite.slnx --no-restore --configuration Release
 
-      - name: Executar testes
+      - name: Executar testes unitários
         run: dotnet test Credite.slnx --no-build --configuration Release
+
+      - name: Subir infraestrutura de integração
+        run: docker compose up -d
+
+      - name: Validar fluxo completo entre os microsserviços
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for tentativa in $(seq 1 60); do
+            if docker exec credite-postgres pg_isready -U credite -d postgres >/dev/null 2>&1; then
+              break
+            fi
+            sleep 2
+          done
+
+          for tentativa in $(seq 1 60); do
+            if docker exec credite-kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list >/dev/null 2>&1; then
+              break
+            fi
+            sleep 2
+          done
+
+          ASPNETCORE_URLS=http://127.0.0.1:5080 dotnet run --no-build --configuration Release --project src/Services/Credit/Credite.Credit.Api > /tmp/credit-api.log 2>&1 &
+          API_PID=$!
+
+          dotnet run --no-build --configuration Release --project src/Services/Notification/Credite.Notification.Worker > /tmp/notification-worker.log 2>&1 &
+          WORKER_PID=$!
+
+          finalizar() {
+            kill "$API_PID" "$WORKER_PID" 2>/dev/null || true
+            docker compose down -v
+          }
+          trap finalizar EXIT
+
+          API_DISPONIVEL=false
+          for tentativa in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:5080/health >/dev/null; then
+              API_DISPONIVEL=true
+              break
+            fi
+            sleep 2
+          done
+
+          if [ "$API_DISPONIVEL" != "true" ]; then
+            cat /tmp/credit-api.log
+            exit 1
+          fi
+
+          curl -fsS -X POST http://127.0.0.1:5080/clientes/ \
+            -H "Content-Type: application/json" \
+            -d '{"nome":"Ana Silva","email":"ana.ci@example.com"}' > /tmp/cliente.json
+
+          CLIENTE_ID=$(jq -r '.id // empty' /tmp/cliente.json)
+          test -n "$CLIENTE_ID"
+
+          curl -fsS -X POST http://127.0.0.1:5080/solicitacoes/ \
+            -H "Content-Type: application/json" \
+            -d "{\"clienteId\":\"$CLIENTE_ID\",\"valorSolicitado\":2500.00}" > /tmp/solicitacao.json
+
+          SOLICITACAO_ID=$(jq -r '.id // empty' /tmp/solicitacao.json)
+          test -n "$SOLICITACAO_ID"
+
+          NOTIFICACAO_RECEBIDA=false
+          for tentativa in $(seq 1 60); do
+            TOTAL=$(docker exec credite-postgres psql -U credite -d notificacoes -tAc \
+              "SELECT COUNT(*) FROM notificacao.notificacoes WHERE solicitacao_id = '$SOLICITACAO_ID';" 2>/dev/null | tr -d '[:space:]' || true)
+
+            if [ "$TOTAL" = "1" ]; then
+              NOTIFICACAO_RECEBIDA=true
+              break
+            fi
+
+            sleep 2
+          done
+
+          if [ "$NOTIFICACAO_RECEBIDA" != "true" ]; then
+            cat /tmp/credit-api.log
+            cat /tmp/notification-worker.log
+            exit 1
+          fi
+
+          echo "Fluxo ponta a ponta concluído: cliente, solicitação, Outbox, Kafka e notificação."
