@@ -1,0 +1,31 @@
+@model ClienteFormularioViewModel
+@{
+    ViewData["Title"] = "Clientes";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <h1 class="h3 mb-3">Cadastrar cliente</h1>
+        <p class="text-secondary">Informe os dados fictícios do cliente. O e-mail deve ser único.</p>
+
+        <form asp-action="Index" method="post" class="card card-body">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+            <div class="mb-3">
+                <label asp-for="Nome" class="form-label"></label>
+                <input asp-for="Nome" class="form-control" autocomplete="name" />
+                <span asp-validation-for="Nome" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" autocomplete="email" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+            <button type="submit" class="btn btn-primary">Cadastrar cliente</button>
+        </form>
+
+        <div class="mt-4">
+            <h2 class="h5">Já possui um cadastro?</h2>
+            <a asp-action="Consultar" class="btn btn-outline-secondary">Consultar cliente por ID</a>
+        </div>
+    </div>
+</div>
