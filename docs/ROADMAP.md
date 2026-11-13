@@ -42,7 +42,7 @@ O projeto será concluído em incrementos verificáveis. O objetivo é demonstra
 - [x] Documentar o contrato de eventos.
 - [x] Documentar execução local e exemplos HTTP.
 - [x] Validar o fluxo completo entre os serviços com PostgreSQL e Kafka no GitHub Actions.
-- [ ] Executar o fluxo completo no ambiente local com Visual Studio Community.
+- [x] Tratar conflito concorrente no cadastro de clientes.\n- [x] Paginar a listagem de solicitações com padrão 20 e máximo 100.\n- [x] Coordenar publicadores da Outbox com bloqueio transacional.\n- [x] Tratar duplicidade concorrente no consumidor.\n- [x] Enriquecer mensagens encaminhadas à DLQ com metadados.\n- [x] Verificar prontidão de PostgreSQL e Kafka na API.\n- [x] Permitir sobrescrita da conexão por variável de ambiente.\n- [ ] Executar o fluxo completo no ambiente local com Visual Studio Community.
 - [ ] Revisar implementação no Visual Studio Community.
 
 ## Fora do escopo
@@ -52,7 +52,7 @@ Autenticação, interface Web, API Gateway, Redis, MongoDB, terceiro microsservi
 ## Limitações conhecidas
 
 - Kafka e PostgreSQL são executados localmente por Docker Compose; os processos .NET são iniciados pelo desenvolvedor.
-- A Outbox tenta publicar até dez vezes. Eventos que esgotarem as tentativas permanecem registrados para inspeção manual.
+- A Outbox usa bloqueio transacional por registro e tenta publicar até dez vezes. Eventos que esgotarem as tentativas permanecem registrados para inspeção manual.
 - O Worker aplica retry contínuo para falhas temporárias de persistência e não confirma o offset até concluir o processamento.
-- A DLQ trata mensagens malformadas. Não existe ferramenta de replay automático no MVP.
+- A DLQ trata mensagens malformadas e preserva metadados de origem. Não existe ferramenta de replay automático no MVP.
 - Os dados são fictícios e as regras de crédito são demonstrativas, sem análise financeira real.
