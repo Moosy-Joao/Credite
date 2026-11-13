@@ -2,6 +2,7 @@ using Confluent.Kafka;
 using Credite.Notification.Worker.Dados;
 using Credite.Notification.Worker.Servicos;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 

@@ -58,7 +58,6 @@ public sealed class MigracaoInicial : Migration
                     column: x => x.cliente_id,
                     principalTable: "clientes",
                     principalColumn: "id",
-                    schema: "credito",
                     principalSchema: "credito",
                     onDelete: ReferentialAction.Restrict);
             });
