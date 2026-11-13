@@ -1,53 +1,52 @@
 # Roadmap do Credite
 
-## Estado
-- Fase 0 — validação local: concluída em 2026-11-01.
-- Arquitetura de quatro microsserviços: aprovada em 2026-11-07.
-- Documentação arquitetural: consolidada.
-- Auditoria e reestruturação do código: próxima etapa.
-- ADR-0015: aguarda confirmação explícita.
+O objetivo é concluir um fluxo funcional entre dois microsserviços, avançando em incrementos pequenos. Uma etapa só começa quando a anterior estiver compilando e validada.
 
-## Fase 0 — validação local (concluída)
+## Etapa 1 — Estrutura mínima
 
-Clone, abertura de Credite.slnx no Visual Studio Community, SDK .NET 10 e restore/build/test foram confirmados com sucesso. Não repetir essa etapa.
+- [x] Manter somente Credit API e Notification Worker.
+- [x] Reduzir a solução para um projeto por serviço.
+- [x] Simplificar a documentação e as decisões arquiteturais.
+- [ ] Restaurar e compilar localmente no Visual Studio Community.
 
-## Fase 1 — auditoria e reestruturação
+## Etapa 2 — Credit API
 
-1. Inventariar projetos, namespaces, arquivos, dependências, endpoints, migrations, testes, Docker e workflows.
-2. Classificar o legado: manter, adaptar, mover, substituir, remover ou aguardar ADR-0015.
-3. Organizar projetos em inglês para Identity, Customer, Credit e Notification.
-4. Separar PostgreSQL, DbContext e migrations para Identity, Customer e Credit.
-5. Configurar MongoDB exclusivo do Notification.
-6. Implementar Outbox em Credit e Kafka Credit → Notification com consumidor idempotente.
-7. Atualizar testes, CI, configuração local e documentação.
-8. Executar restore, build e testes após cada etapa.
+- [ ] Criar o modelo simples de Cliente.
+- [ ] Criar o modelo de Solicitação de Crédito.
+- [ ] Implementar cadastro e consulta de clientes fictícios.
+- [ ] Implementar criação e consulta de solicitações.
+- [ ] Persistir dados no PostgreSQL usando EF Core.
+- [ ] Criar testes unitários e de integração essenciais.
 
-Não implementar autenticação distribuída, comunicação síncrona, Gateway ou integração final da interface antes de ADR-0015. Não apagar histórico sem plano aprovado.
+## Etapa 3 — Mensageria
 
-## Fase 2 — contratos e segurança (após ADR-0015)
+- [ ] Subir PostgreSQL e Kafka localmente com Docker Compose.
+- [ ] Definir o contrato do evento SolicitaçãoCriada.
+- [ ] Publicar o evento pelo Credit após registrar uma solicitação.
+- [ ] Verificar publicação e consumo com uma mensagem real.
 
-Definir protocolo de autenticação/autorização, comunicação síncrona, contratos REST, integração da interface, eventual Gateway e contratos/eventos completos.
+## Etapa 4 — Notification Worker
 
-## Fase 3 — implementação funcional dos serviços
+- [ ] Consumir eventos do Kafka.
+- [ ] Processar e registrar notificações fictícias.
+- [ ] Persistir notificações em banco próprio.
+- [ ] Tratar mensagens inválidas e falhas de processamento.
 
-- Identity: contas internas, credenciais e perfis.
-- Customer: clientes fictícios.
-- Credit: solicitações, estados, avaliações, simulação e histórico.
-- Notification: consumo de eventos e notificações demonstrativas.
-- Persistência isolada, testes, segurança, health checks e observabilidade.
+## Etapa 5 — Confiabilidade
 
-## Fase 4 — integração assíncrona
+- [ ] Implementar idempotência.
+- [ ] Implementar Transactional Outbox.
+- [ ] Implementar retry limitado.
+- [ ] Implementar dead-letter topic.
+- [ ] Testar duplicidade, indisponibilidade e recuperação.
 
-Validar Outbox, publicação Kafka, consumo idempotente, retry limitado, dead-letter topic, duplicidade, indisponibilidade do broker, reinício do publicador e redrive.
+## Etapa 6 — Finalização
 
-## Fase 5 — interface e fluxo vertical
+- [ ] Completar testes automatizados relevantes.
+- [ ] Documentar como executar toda a solução.
+- [ ] Validar build, testes e fluxo completo localmente.
+- [ ] Revisar README e registrar limitações conhecidas.
 
-Integrar a interface conforme ADR-0015 e demonstrar o fluxo de cliente, solicitação, avaliação demonstrativa e notificação.
+## Regra de escopo
 
-## Fase 6 — qualidade e portfólio
-
-Testes unitários, integração e contrato; CI; Docker Compose; observabilidade; documentação operacional; revisão de segurança e privacidade.
-
-## Critérios de conclusão
-
-Quatro serviços implementados; persistência exclusiva por serviço; fluxo Credit → Kafka → Notification resiliente; interface integrada conforme decisão aprovada; testes e CI passando; documentação fiel ao código; dados fictícios e limitações educacionais explícitos.
+Não adicionar autenticação, interface Web, API Gateway, Redis, MongoDB, terceiro microsserviço ou projetos separados por camada durante o MVP. Qualquer mudança de escopo exige justificativa e decisão explícita.

@@ -1,43 +1,28 @@
+## Build
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+artifacts/
+
 ## Visual Studio
 .vs/
 *.user
 *.suo
-*.userosscache
+*.cache
 *.sln.docstates
 
-## Build
-[Bb]in/
-[Oo]bj/
-[Dd]ebug/
-[Rr]elease/
-x64/
-x86/
-[Aa]rtifacts/
-artifacts/
+## Rider / VS Code
+.idea/
+.vscode/
 
-## Testes e cobertura
-TestResults/
-coverage/
-coverage.*
-
-## NuGet
-*.nupkg
-*.snupkg
-.nuget/
-
-## Logs
-*.log
-
-## Configurações locais e segredos
+## Local configuration and secrets
+appsettings.Development.json
+secrets.json
 .env
 .env.*
 !.env.example
-secrets.json
-appsettings.Development.local.json
 
-## Docker
-docker-compose.override.yml
-
-## Sistema operacional
+## OS
 .DS_Store
 Thumbs.db

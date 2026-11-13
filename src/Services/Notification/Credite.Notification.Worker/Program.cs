@@ -1,7 +1,9 @@
-// Host inicial do Worker Service. O consumidor de eventos (Kafka) pertence à Etapa 4
-// e depende da ADR de contratos de eventos. Este serviço não expõe endpoints de negócio.
+using Credite.Notification.Worker;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+
 var builder = Host.CreateApplicationBuilder(args);
 
-var host = builder.Build();
+builder.Services.AddHostedService<ProcessadorNotificacoes>();
 
-host.Run();
+await builder.Build().RunAsync();
