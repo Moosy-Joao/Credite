@@ -6,5 +6,5 @@ public sealed class HomeController : Controller
 {
     public IActionResult Index() => View();
 
-    public IActionResult Erro() => View();
+    public IActionResult Erro() => View("Error");
 }
