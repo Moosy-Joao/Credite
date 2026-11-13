@@ -82,7 +82,7 @@ jobs:
           WORKER_PID=$!
 
           finalizar() {
-            kill "$API_PID" "$WORKER_PID" 2>/dev/null || true
+            kill "$API_PID" "$API2_PID" "$WORKER_PID" 2>/dev/null || true
             docker compose down -v
           }
           trap finalizar EXIT
@@ -101,6 +101,24 @@ jobs:
             exit 1
           fi
 
+          # Inicia uma segunda instância para exercitar a reivindicação concorrente da Outbox.
+          ASPNETCORE_URLS=http://127.0.0.1:5081 dotnet run --no-build --configuration Release --project src/Services/Credit/Credite.Credit.Api > /tmp/credit-api-2.log 2>&1 &
+          API2_PID=$!
+
+          API2_DISPONIVEL=false
+          for tentativa in $(seq 1 30); do
+            if curl --max-time 3 -fsS http://127.0.0.1:5081/health >/dev/null; then
+              API2_DISPONIVEL=true
+              break
+            fi
+            sleep 2
+          done
+
+          if [ "$API2_DISPONIVEL" != "true" ]; then
+            cat /tmp/credit-api-2.log
+            exit 1
+          fi
+
           curl --max-time 10 -fsS -X POST http://127.0.0.1:5080/clientes/ \
             -H "Content-Type: application/json" \
             -d '{"nome":"Ana Silva","email":"ana.ci@example.com"}' > /tmp/cliente.json
@@ -114,6 +132,46 @@ jobs:
 
           SOLICITACAO_ID=$(jq -r '.id // empty' /tmp/solicitacao.json)
           test -n "$SOLICITACAO_ID"
+
+          # O índice único deve transformar duplicidade, inclusive concorrente, em HTTP 409.
+          for tentativa in a b; do
+            (
+              curl --max-time 10 -sS -o "/tmp/cliente-$tentativa.json" -w "%{http_code}" \
+                -X POST http://127.0.0.1:5080/clientes/ \
+                -H "Content-Type: application/json" \
+                -d '{"nome":"Cliente Concorrente","email":"concorrencia.ci@example.com"}' \
+                > "/tmp/cliente-$tentativa.status"
+            ) &
+          done
+          wait
+          STATUS_A=$(cat /tmp/cliente-a.status)
+          STATUS_B=$(cat /tmp/cliente-b.status)
+          if ! { [ "$STATUS_A" = "201" ] && [ "$STATUS_B" = "409" ]; } && ! { [ "$STATUS_A" = "409" ] && [ "$STATUS_B" = "201" ]; }; then
+            echo "Esperado um HTTP 201 e um HTTP 409; recebidos $STATUS_A e $STATUS_B."
+            exit 1
+          fi
+
+          TOTAL_CLIENTES=$(timeout 5s docker exec credite-postgres psql -U credite -d credito -tAc \
+            "SELECT COUNT(*) FROM credito.clientes WHERE email = 'concorrencia.ci@example.com';" | tr -d '[:space:]')
+          test "$TOTAL_CLIENTES" = "1"
+
+          # Confirma envelope, valores padrão e limite máximo da paginação.
+          curl --max-time 10 -fsS "http://127.0.0.1:5080/solicitacoes?pagina=1&tamanhoPagina=1" > /tmp/pagina.json
+          jq -e '.pagina == 1 and .tamanhoPagina == 1 and .totalRegistros >= 1 and (.itens | length) == 1' /tmp/pagina.json
+          STATUS_PAGINACAO=$(curl --max-time 10 -sS -o /tmp/paginacao-invalida.json -w "%{http_code}" \
+            "http://127.0.0.1:5080/solicitacoes?pagina=1&tamanhoPagina=101")
+          test "$STATUS_PAGINACAO" = "400"
+
+          # Mensagem inválida deve chegar à DLQ com os metadados de origem.
+          printf 'chave-invalida:{json-invalido\n' | docker exec -i credite-kafka \
+            /opt/kafka/bin/kafka-console-producer.sh --bootstrap-server localhost:9092 \
+            --topic solicitacoes.credito.criada --property parse.key=true --property key.separator=:
+          timeout 20s docker exec credite-kafka /opt/kafka/bin/kafka-console-consumer.sh \
+            --bootstrap-server localhost:9092 --topic solicitacoes.credito.criada.dlq \
+            --from-beginning --max-messages 1 --timeout-ms 15000 --property print.headers=true \
+            > /tmp/dlq.log 2>&1 || true
+          grep -q "credite-topico-origem" /tmp/dlq.log
+          grep -q "credite-offset-origem" /tmp/dlq.log
 
           NOTIFICACAO_RECEBIDA=false
           for tentativa in $(seq 1 30); do
@@ -134,4 +192,4 @@ jobs:
             exit 1
           fi
 
-          echo "Fluxo ponta a ponta concluído: cliente, solicitação, Outbox, Kafka e notificação."
+          echo "Fluxo ponta a ponta concluído: cadastro concorrente, paginação, duas instâncias da API, Outbox, Kafka, DLQ e notificação."
