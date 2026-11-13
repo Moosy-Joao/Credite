@@ -150,14 +150,19 @@ Após o evento ser publicado e consumido, a notificação fica registrada no ban
 
 | Método | Rota | Descrição |
 |---|---|---|
-| GET | /health/live | Verifica se o processo da API está ativo |\n| GET | /health | Verifica prontidão de PostgreSQL e Kafka |
+| GET | /health/live | Verifica se o processo da API está ativo |
+| GET | /health | Verifica prontidão de PostgreSQL e Kafka |
 | POST | /clientes | Cadastra cliente fictício |
 | GET | /clientes/{id} | Consulta cliente |
 | POST | /solicitacoes | Cria solicitação e evento Outbox |
 | GET | /solicitacoes | Lista solicitações, opcionalmente filtradas por cliente |
 | GET | /solicitacoes/{id} | Consulta solicitação |
 
-## Configuração e credenciais\n\nAs credenciais versionadas em `appsettings.json`, nas fábricas de design-time e no Docker Compose são **exclusivas para desenvolvimento local descartável**. Não reutilize esses valores em produção. Os processos .NET aceitam sobrescrita pela variável de ambiente `ConnectionStrings__BancoDados`; o EF Core design-time também respeita essa variável. Não armazene credenciais reais no repositório.\n\n## Migrations
+## Configuração e credenciais
+
+As credenciais versionadas em `appsettings.json`, nas fábricas de design-time e no Docker Compose são **exclusivas para desenvolvimento local descartável**. Não reutilize esses valores em produção. Os processos .NET aceitam sobrescrita pela variável de ambiente `ConnectionStrings__BancoDados`; o EF Core design-time também respeita essa variável. Não armazene credenciais reais no repositório.
+
+## Migrations
 
 As migrations são independentes por microsserviço. Cada projeto possui uma fábrica de design-time para que o EF Core consiga criar o DbContext sem iniciar o serviço.
 
