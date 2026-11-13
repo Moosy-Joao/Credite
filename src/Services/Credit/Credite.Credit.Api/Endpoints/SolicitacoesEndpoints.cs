@@ -72,7 +72,8 @@ public static class SolicitacoesEndpoints
         var numeroPagina = pagina ?? PaginaPadrao;
         var tamanho = tamanhoPagina ?? TamanhoPaginaPadrao;
 
-        if (numeroPagina < 1 || tamanho < 1 || tamanho > TamanhoPaginaMaximo)
+        if (numeroPagina < 1 || tamanho < 1 || tamanho > TamanhoPaginaMaximo ||
+            numeroPagina > int.MaxValue / tamanho)
         {
             return Results.ValidationProblem(new Dictionary<string, string[]>
             {
