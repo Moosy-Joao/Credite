@@ -25,7 +25,7 @@ Manter a consulta antecipada para resposta rápida e tratar também a violação
 
 ## 2. Reivindicação concorrente da Outbox — prioridade alta
 
-**Arquivos:** `Dominio/EventoPendente.cs`, `Dados/CrediteDbContext.cs`, migration e snapshot de Credit, `Servicos/PublicadorEventos.cs`.
+**Arquivos:** `Dominio/EventoPendente.cs`, `Dados/CrediteDbContext.cs` e `Servicos/PublicadorEventos.cs`, `Servicos/PublicadorEventos.cs`.
 
 ### Problema
 Duas instâncias do Credit podem selecionar o mesmo evento pendente antes de qualquer uma marcá-lo como publicado. A idempotência do consumidor protege o efeito final, mas não evita publicação duplicada nem coordena os publicadores.
@@ -36,10 +36,10 @@ Reivindicar atomicamente um evento elegível no PostgreSQL usando `SELECT ... FO
 A publicação continua sendo **at-least-once**: se Kafka aceitar a mensagem e o processo cair antes de persistir `publicado_em`, o evento poderá ser publicado novamente. O Notification deve continuar idempotente. Não declarar exactly-once entre PostgreSQL e Kafka.
 
 ### Aceite
-- Duas instâncias não reivindicam simultaneamente o mesmo evento enquanto o lease estiver válido.
+- Duas instâncias não selecionam simultaneamente a mesma linha enquanto o bloqueio transacional estiver ativo.
 - Queda do publicador libera o bloqueio transacional e permite retomar o evento.
 - Falha de publicação incrementa tentativas, registra erro e libera o evento para nova tentativa.
-- Publicação bem-sucedida marca `publicado_em` e libera o lease.
+- Publicação bem-sucedida marca `publicado_em` e libera o bloqueio ao confirmar a transação.
 - Eventos que atingirem dez tentativas permanecem visíveis para inspeção manual.
 
 ## 3. Paginação da listagem — prioridade alta
@@ -135,12 +135,12 @@ Os testes automatizados cobrem essencialmente regras das entidades. O workflow j
 Ampliar testes unitários para limites de paginação, normalização e classificação de falhas. Criar testes de integração executáveis no CI para:
 - conflito de e-mail, incluindo corrida concorrente;
 - paginação e filtro por cliente;
-- reivindicação concorrente da Outbox por duas instâncias e retomada após rollback;
+- execução com duas instâncias da API para exercitar a reivindicação concorrente da Outbox;
 - incremento de tentativas e liberação após falha;
 - persistência idempotente de notificações;
 - duplicidade por constraint;
 - encaminhamento à DLQ com headers;
-- falha de envio à DLQ sem commit do offset.
+- falha de envio à DLQ sem commit do offset (a confirmar em teste automatizado dedicado).
 
 Reutilizar PostgreSQL e Kafka já iniciados no workflow, ou introduzir abstrações pequenas e testáveis quando um teste unitário for mais apropriado. Não adicionar serviços de infraestrutura extras.
 
@@ -182,3 +182,22 @@ A documentação corresponde ao código e aos testes, sem prometer exactly-once 
 ## 12. Referência da implementação
 
 Este documento deve ser usado como checklist vinculante durante a implementação. Se a análise do código revelar que algum item não se aplica ou exigir ajuste, registrar a justificativa neste documento e atualizar os critérios de aceite antes de encerrar a tarefa.
+
+
+## 13. Situação da implementação
+
+- [x] Especificação detalhada registrada neste arquivo e relida antes das alterações.
+- [x] Conflito concorrente de e-mail tratado por constraint específica.
+- [x] Outbox protegida por bloqueio transacional de linha e timeout Kafka limitado.
+- [x] Paginação implementada com limites e ordenação determinística.
+- [x] Consumidor trata duplicidade concorrente pela constraint única.
+- [x] DLQ preserva chave/payload e inclui headers de origem.
+- [x] Readiness da API verifica PostgreSQL e Kafka; liveness separado.
+- [x] Configuração de conexão sobrescrevível por variável de ambiente, inclusive no design-time.
+- [x] README, arquitetura, contrato e roadmap atualizados.
+- [x] CI ampliado para duas instâncias, cadastro concorrente, paginação e DLQ.
+- [ ] Confirmar build, migrations check e testes unitários no GitHub Actions.
+- [ ] Confirmar cenário de integração no GitHub Actions.
+- [ ] Revisar eventuais falhas do pipeline e corrigir antes de integrar à `main`.
+
+**Limitação de teste registrada:** o workflow ampliado valida o caminho de DLQ e a execução com duas instâncias, mas ainda não injeta uma falha controlada no produtor da DLQ nem mede diretamente o número de publicações de um mesmo evento. Esses dois cenários não serão declarados testados sem uma verificação automatizada explícita.
