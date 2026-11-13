@@ -1,23 +1,26 @@
 # Credite
 
-Projeto educacional de Back-End com C# 14, .NET 10 e dois microsserviços. O sistema registra solicitações fictícias de crédito e processa notificações de forma assíncrona.
+Projeto educacional com C# 14, .NET 10, interface ASP.NET Core MVC e dois microsserviços. O sistema registra solicitações fictícias de crédito e processa notificações de forma assíncrona.
 
 O Credite não realiza análise financeira real, não concede crédito e não deve receber dados pessoais ou financeiros reais.
 
 ## Arquitetura
 
-| Microsserviço | Responsabilidade | Banco |
+| Componente | Responsabilidade | Persistência |
 |---|---|---|
+| Credite.Web | Interface MVC e consumo HTTP da Credit API | Nenhuma |
 | Credit API | Cadastro de clientes fictícios, solicitações e publicação de eventos | PostgreSQL credito |
 | Notification Worker | Consumo de eventos e registro idempotente de notificações | PostgreSQL notificacoes |
 
-O Credit grava a solicitação e um evento pendente na mesma transação. Um processo de Outbox publica os eventos no Apache Kafka com bloqueio transacional de linha para coordenar instâncias concorrentes. A entrega é at-least-once, e o Notification aplica idempotência antes de confirmar o offset.
+A aplicação Web não acessa os bancos de dados nem se comunica diretamente com o Kafka. A Credit API é responsável pelas regras de negócio e pela persistência. O Credit grava a solicitação e um evento pendente na mesma transação. Um processo de Outbox publica os eventos no Apache Kafka com bloqueio transacional de linha para coordenar instâncias concorrentes. A entrega é at-least-once, e o Notification aplica idempotência antes de confirmar o offset.
 
-Cada serviço é dono do próprio banco. Os bancos compartilham apenas a instância PostgreSQL no ambiente local, não tabelas ou migrations.
+Cada microsserviço é dono do próprio banco. Os bancos compartilham apenas a instância PostgreSQL no ambiente local, não tabelas ou migrations.
 
 ## Tecnologias
 
 - C# 14 e .NET 10
+- ASP.NET Core MVC e Razor Views
+- Bootstrap 5.3
 - ASP.NET Core Minimal APIs
 - EF Core 10 e PostgreSQL
 - Apache Kafka e Confluent.Kafka
@@ -35,6 +38,7 @@ Credite/
 │   ├── Services/
 │   │   ├── Credit/Credite.Credit.Api/
 │   │   └── Notification/Credite.Notification.Worker/
+│   ├── Web/Credite.Web/
 │   └── Tests/Credite.Tests/
 ├── infra/postgres/init.sql
 ├── docs/
@@ -42,7 +46,7 @@ Credite/
 └── Credite.slnx
 ~~~
 
-Cada microsserviço possui um único projeto executável. As pastas internas separam responsabilidades sem criar projetos de camadas prematuramente.
+Cada microsserviço possui um único projeto executável. A interface Web é um projeto independente e consome a API por HTTP. As pastas internas separam responsabilidades sem criar projetos de camadas prematuramente.
 
 ## Pré-requisitos
 
@@ -86,6 +90,14 @@ dotnet run --project src/Services/Notification/Credite.Notification.Worker
 
 O Worker também aplica suas migrations automaticamente e começa a consumir o tópico Kafka. Os dois serviços carregam as configurações locais a partir dos arquivos appsettings distribuídos junto aos executáveis, independentemente da pasta atual do terminal.
 
+Inicie a interface Web em outro terminal:
+
+~~~powershell
+dotnet run --project src/Web/Credite.Web
+~~~
+
+A interface depende da Credit API estar em execução. No Visual Studio, também é possível definir `Credite.Web` como projeto de inicialização. Consulte [docs/WEB-MVC.md](docs/WEB-MVC.md) para configurar a URL da API e conhecer as telas.
+
 Para encerrar a infraestrutura:
 
 ~~~powershell
@@ -100,7 +112,7 @@ docker compose down -v
 
 O segundo comando remove permanentemente os dados armazenados no volume local.
 
-## Fluxo de uso
+## Fluxo de uso pela API
 
 ### 1. Cadastrar cliente
 
@@ -160,6 +172,8 @@ Após o evento ser publicado e consumido, a notificação fica registrada no ban
 
 ## Configuração e credenciais
 
+A URL da Credit API consumida pela interface fica em `src/Web/Credite.Web/appsettings.json`, na chave `ApiSettings:BaseUrl`. Ajuste-a para a URL em que a API está sendo executada. A mesma configuração pode ser sobrescrita pela variável de ambiente `ApiSettings__BaseUrl`.
+
 As credenciais versionadas em `appsettings.json`, nas fábricas de design-time e no Docker Compose são **exclusivas para desenvolvimento local descartável**. Não reutilize esses valores em produção. Os processos .NET aceitam sobrescrita pela variável de ambiente `ConnectionStrings__BancoDados`; o EF Core design-time também respeita essa variável. Não armazene credenciais reais no repositório.
 
 ## Migrations
@@ -205,10 +219,11 @@ Consulte docs/CONTRATOS-EVENTOS.md para o payload.
 - Documentação e commits em português.
 - Preferir recursos nativos do .NET e evitar abstrações prematuras.
 
-## Limitações do MVP
+## Limitações atuais
 
-- Não há autenticação, autorização ou interface Web.
+- Não há autenticação ou autorização na interface Web.
 - A análise de crédito é fictícia; a API apenas registra a solicitação como EmAnalise.
+- A API não possui endpoint para listar todos os clientes; a interface permite consultar cliente por identificador.
 - A Outbox limita a dez tentativas e exige inspeção manual após esgotá-las. O publicador mantém um bloqueio transacional de linha durante o envio ao Kafka; a entrega continua sendo at-least-once.
 - O Worker repete falhas temporárias de persistência até conseguir processar a mensagem.
 - A DLQ não possui ferramenta de replay automático. As mensagens inválidas incluem headers com tópico, partição, offset, horário e motivo da falha.
@@ -219,4 +234,5 @@ Consulte docs/CONTRATOS-EVENTOS.md para o payload.
 - docs/ARQUITETURA.md
 - docs/ROADMAP.md
 - docs/CONTRATOS-EVENTOS.md
+- docs/WEB-MVC.md
 - docs/adr/0001-dois-microsservicos.md
