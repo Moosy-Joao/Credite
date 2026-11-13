@@ -149,15 +149,14 @@ public sealed class ConsumidorEventos(
         try
         {
             await banco.SaveChangesAsync(cancellationToken);
+            logger.LogInformation("Notificação {NotificacaoId} registrada para a solicitação {SolicitacaoId}.",
+                notificacao.Id, notificacao.SolicitacaoId);
         }
         catch (DbUpdateException excecao) when (EhEventoDuplicado(excecao))
         {
             // A constraint única é a proteção definitiva contra duas entregas concorrentes.
             logger.LogInformation("Evento {EventoId} já persistido por outro processamento.", evento.EventoId);
         }
-
-        logger.LogInformation("Notificação {NotificacaoId} registrada para a solicitação {SolicitacaoId}.",
-            notificacao.Id, notificacao.SolicitacaoId);
     }
 
     private async Task EncaminharParaDeadLetter(
