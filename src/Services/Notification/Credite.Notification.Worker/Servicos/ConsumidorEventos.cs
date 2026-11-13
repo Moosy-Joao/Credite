@@ -4,7 +4,10 @@ using Credite.Notification.Worker.Contratos;
 using Credite.Notification.Worker.Dados;
 using Credite.Notification.Worker.Dominio;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Credite.Notification.Worker.Servicos;
 
@@ -36,7 +39,7 @@ public sealed class ConsumidorEventos(
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            ConsumeResult<string, string>? mensagem;
+            ConsumeResult<string, string> mensagem;
 
             try
             {

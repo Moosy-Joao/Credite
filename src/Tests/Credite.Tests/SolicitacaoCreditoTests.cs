@@ -1,4 +1,5 @@
 using Credite.Credit.Api.Dominio;
+using Xunit;
 
 namespace Credite.Tests;
 

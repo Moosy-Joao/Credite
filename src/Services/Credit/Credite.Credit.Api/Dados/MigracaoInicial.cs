@@ -53,8 +53,14 @@ public sealed class MigracaoInicial : Migration
             constraints: tabela =>
             {
                 tabela.PrimaryKey("pk_solicitacoes_credito", x => x.id);
-                tabela.ForeignKey("fk_solicitacoes_credito_clientes_cliente_id",
-                    x => x.cliente_id, "credito", "clientes", "id", onDelete: ReferentialAction.Restrict);
+                tabela.ForeignKey(
+                    name: "fk_solicitacoes_credito_clientes_cliente_id",
+                    column: x => x.cliente_id,
+                    principalTable: "clientes",
+                    principalColumn: "id",
+                    schema: "credito",
+                    principalSchema: "credito",
+                    onDelete: ReferentialAction.Restrict);
             });
 
         migrationBuilder.CreateIndex("ix_clientes_email", "clientes", "email", "credito", unique: true);
