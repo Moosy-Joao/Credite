@@ -20,7 +20,8 @@ builder.Services.AddSingleton<IProducer<string, string>>(_ =>
     new ProducerBuilder<string, string>(new ProducerConfig
     {
         BootstrapServers = configuracaoKafka["BootstrapServers"] ?? "localhost:9092",
-        ClientId = "credite-notification-worker"
+        ClientId = "credite-notification-worker",
+        MessageTimeoutMs = 15_000
     }).Build());
 
 builder.Services.AddHostedService<ConsumidorEventos>();
