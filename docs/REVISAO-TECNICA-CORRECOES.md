@@ -31,13 +31,13 @@ Manter a consulta antecipada para resposta rápida e tratar também a violação
 Duas instâncias do Credit podem selecionar o mesmo evento pendente antes de qualquer uma marcá-lo como publicado. A idempotência do consumidor protege o efeito final, mas não evita publicação duplicada nem coordena os publicadores.
 
 ### Correção
-Adicionar à Outbox um token de reivindicação (`token_bloqueio`) e prazo de lease (`bloqueado_ate`). Reivindicar atomicamente um evento elegível no PostgreSQL com uma operação curta baseada em `FOR UPDATE SKIP LOCKED`; persistir o token e o prazo antes de publicar. Após publicação, marcar como publicado e liberar o lease. Em falha, registrar tentativa/erro e liberar o lease. Um lease expirado permite recuperação após queda do processo.
+Reivindicar atomicamente um evento elegível no PostgreSQL usando `SELECT ... FOR UPDATE SKIP LOCKED` dentro de uma transação. O bloqueio da linha impede que outra instância selecione o mesmo evento. Publicar enquanto a transação permanece aberta, com timeout Kafka limitado, então marcar como publicado ou registrar a falha e confirmar a transação. Se o processo cair, o PostgreSQL libera o bloqueio ao encerrar a conexão e o evento permanece pendente para recuperação. Esta é uma escolha proporcional ao MVP; se o volume ou duração de publicação crescer, evoluir para lease persistido e processamento em lotes.
 
 A publicação continua sendo **at-least-once**: se Kafka aceitar a mensagem e o processo cair antes de persistir `publicado_em`, o evento poderá ser publicado novamente. O Notification deve continuar idempotente. Não declarar exactly-once entre PostgreSQL e Kafka.
 
 ### Aceite
 - Duas instâncias não reivindicam simultaneamente o mesmo evento enquanto o lease estiver válido.
-- Lease expirado permite retomar evento abandonado.
+- Queda do publicador libera o bloqueio transacional e permite retomar o evento.
 - Falha de publicação incrementa tentativas, registra erro e libera o evento para nova tentativa.
 - Publicação bem-sucedida marca `publicado_em` e libera o lease.
 - Eventos que atingirem dez tentativas permanecem visíveis para inspeção manual.
@@ -152,7 +152,7 @@ Todos os testes passam localmente no CI; o workflow executa restore, build, migr
 **Arquivos:** README, `docs/ARQUITETURA.md`, `docs/CONTRATOS-EVENTOS.md`, `docs/ROADMAP.md`.
 
 ### Correção
-Atualizar rotas, envelope de paginação, headers da DLQ, semântica at-least-once, lease da Outbox, readiness, credenciais locais e limitações reais. Marcar como concluídas somente funcionalidades cobertas por código e validação. Preservar o escopo de dois microsserviços e não reintroduzir autenticação, UI, gateway, Redis, MongoDB ou serviços extras.
+Atualizar rotas, envelope de paginação, headers da DLQ, semântica at-least-once, bloqueio transacional da Outbox, readiness, credenciais locais e limitações reais. Marcar como concluídas somente funcionalidades cobertas por código e validação. Preservar o escopo de dois microsserviços e não reintroduzir autenticação, UI, gateway, Redis, MongoDB ou serviços extras.
 
 ### Aceite
 A documentação corresponde ao código e aos testes, sem prometer exactly-once ou alta disponibilidade.
