@@ -1,0 +1,43 @@
+@model ClienteConsultaViewModel
+@{
+    ViewData["Title"] = "Consultar cliente";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <h1 class="h3 mb-3">Consultar cliente</h1>
+        <form asp-action="Consultar" method="post" class="card card-body mb-4">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+            <label asp-for="Id" class="form-label"></label>
+            <input asp-for="Id" class="form-control" placeholder="00000000-0000-0000-0000-000000000000" />
+            <span asp-validation-for="Id" class="text-danger"></span>
+            <button type="submit" class="btn btn-primary mt-3">Consultar</button>
+        </form>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Mensagem))
+        {
+            <div class="alert alert-warning">@Model.Mensagem</div>
+        }
+
+        @if (Model.Cliente is not null)
+        {
+            <div class="card">
+                <div class="card-header fw-semibold">Dados do cliente</div>
+                <dl class="card-body row mb-0">
+                    <dt class="col-sm-3">ID</dt>
+                    <dd class="col-sm-9 text-break">@Model.Cliente.Id</dd>
+                    <dt class="col-sm-3">Nome</dt>
+                    <dd class="col-sm-9">@Model.Cliente.Nome</dd>
+                    <dt class="col-sm-3">E-mail</dt>
+                    <dd class="col-sm-9">@Model.Cliente.Email</dd>
+                    <dt class="col-sm-3">Criado em</dt>
+                    <dd class="col-sm-9">@Model.Cliente.CriadoEm.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</dd>
+                </dl>
+                <div class="card-footer">
+                    <a class="btn btn-primary" asp-controller="Solicitacoes" asp-action="Criar"
+                       asp-route-clienteId="@Model.Cliente.Id">Criar solicitação para este cliente</a>
+                </div>
+            </div>
+        }
+    </div>
+</div>
