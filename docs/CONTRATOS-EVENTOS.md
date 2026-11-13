@@ -28,7 +28,7 @@ A chave Kafka da mensagem é o eventoId.
 
 ## Mensagens inválidas
 
-O tópico solicitacoes.credito.criada.dlq recebe mensagens cujo JSON ou identificadores obrigatórios são inválidos. Falhas temporárias de persistência não são enviadas à DLQ: o Worker mantém a mensagem atual sem confirmar o offset e tenta novamente.
+O tópico `solicitacoes.credito.criada.dlq` recebe mensagens cujo payload está vazio/nulo, JSON ou identificadores obrigatórios são inválidos. A mensagem preserva a chave e o payload original. Os headers `credite-topico-origem`, `credite-particao-origem`, `credite-offset-origem`, `credite-falha-em` e `credite-motivo` registram a origem e a causa resumida. Falhas temporárias de persistência não são enviadas à DLQ: o Worker mantém a mensagem atual sem confirmar o offset e tenta novamente.
 
 ## Compatibilidade
 
