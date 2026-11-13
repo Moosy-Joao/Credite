@@ -61,10 +61,11 @@ docker compose ps
 
 Aguarde o PostgreSQL e o Kafka ficarem disponíveis. Na primeira inicialização, o PostgreSQL cria os bancos credito e notificacoes.
 
-Restaure, compile e teste a solução:
+Restaure as dependências, as ferramentas locais, compile e teste:
 
 ~~~powershell
 dotnet restore Credite.slnx
+dotnet tool restore
 dotnet build Credite.slnx
 dotnet test Credite.slnx
 ~~~
@@ -72,7 +73,7 @@ dotnet test Credite.slnx
 Inicie a API em um terminal:
 
 ~~~powershell
-dotnet run --project src/Services/Credit/Credite.Credit.Api
+dotnet run --no-build --configuration Release --project src/Services/Credit/Credite.Credit.Api
 ~~~
 
 A API aplica suas migrations automaticamente na inicialização. A documentação interativa fica em /scalar/v1, na URL indicada pelo terminal.
@@ -80,10 +81,10 @@ A API aplica suas migrations automaticamente na inicialização. A documentaçã
 Inicie o Worker em outro terminal:
 
 ~~~powershell
-dotnet run --project src/Services/Notification/Credite.Notification.Worker
+dotnet run --no-build --configuration Release --project src/Services/Notification/Credite.Notification.Worker
 ~~~
 
-O Worker também aplica suas migrations automaticamente e começa a consumir o tópico Kafka.
+O Worker também aplica suas migrations automaticamente e começa a consumir o tópico Kafka. Os dois serviços carregam suas configurações locais a partir dos arquivos appsettings distribuídos junto aos executáveis.
 
 Para encerrar a infraestrutura:
 
@@ -155,6 +156,31 @@ Após o evento ser publicado e consumido, a notificação fica registrada no ban
 | POST | /solicitacoes | Cria solicitação e evento Outbox |
 | GET | /solicitacoes | Lista solicitações, opcionalmente filtradas por cliente |
 | GET | /solicitacoes/{id} | Consulta solicitação |
+
+## Migrations
+
+As migrations são independentes por microsserviço. Cada projeto possui uma fábrica de design-time para que o EF Core consiga criar o DbContext sem iniciar o serviço.
+
+Verifique se os snapshots correspondem aos modelos:
+
+~~~powershell
+dotnet ef migrations has-pending-model-changes --project src/Services/Credit/Credite.Credit.Api/Credite.Credit.Api.csproj
+dotnet ef migrations has-pending-model-changes --project src/Services/Notification/Credite.Notification.Worker/Credite.Notification.Worker.csproj
+~~~
+
+Para criar uma migration no Credit:
+
+~~~powershell
+dotnet ef migrations add NomeDaMigracao --project src/Services/Credit/Credite.Credit.Api/Credite.Credit.Api.csproj --output-dir Dados
+~~~
+
+Para criar uma migration no Notification:
+
+~~~powershell
+dotnet ef migrations add NomeDaMigracao --project src/Services/Notification/Credite.Notification.Worker/Credite.Notification.Worker.csproj --output-dir Dados
+~~~
+
+Revise sempre o código gerado antes de aplicar ou enviar uma migration.
 
 ## Mensageria e consistência
 

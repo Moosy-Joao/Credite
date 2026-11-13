@@ -25,8 +25,16 @@ jobs:
       - name: Restaurar dependências
         run: dotnet restore Credite.slnx
 
+      - name: Restaurar ferramentas locais
+        run: dotnet tool restore
+
       - name: Compilar solução
         run: dotnet build Credite.slnx --no-restore --configuration Release
+
+      - name: Validar snapshots das migrations
+        run: |
+          dotnet ef migrations has-pending-model-changes --project src/Services/Credit/Credite.Credit.Api/Credite.Credit.Api.csproj
+          dotnet ef migrations has-pending-model-changes --project src/Services/Notification/Credite.Notification.Worker/Credite.Notification.Worker.csproj
 
       - name: Executar testes unitários
         run: dotnet test Credite.slnx --no-build --configuration Release

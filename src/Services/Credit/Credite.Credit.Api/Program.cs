@@ -5,7 +5,12 @@ using Credite.Credit.Api.Servicos;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+{
+    Args = args,
+    ContentRootPath = AppContext.BaseDirectory
+});
+
 builder.Services.AddOpenApi();
 builder.Services.AddDbContext<CrediteDbContext>(opcoes =>
     opcoes.UseNpgsql(builder.Configuration.GetConnectionString("BancoDados")));
