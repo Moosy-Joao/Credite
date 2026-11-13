@@ -1,0 +1,84 @@
+@model SolicitacoesListaViewModel
+@using System.Globalization
+@{
+    ViewData["Title"] = "Solicitações";
+}
+
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <div>
+        <h1 class="h3 mb-1">Solicitações de crédito</h1>
+        <p class="text-secondary mb-0">Consulta paginada fornecida pela Credit API.</p>
+    </div>
+    <a class="btn btn-primary" asp-action="Criar">Nova solicitação</a>
+</div>
+
+<form method="get" asp-action="Index" class="row g-2 align-items-end mb-4">
+    <div class="col-md-7">
+        <label asp-for="ClienteId" class="form-label"></label>
+        <input asp-for="ClienteId" class="form-control" placeholder="ID do cliente (opcional)" />
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-outline-primary">Filtrar</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Limpar</a>
+    </div>
+</form>
+
+@if (ViewBag.Erro is string erro)
+{
+    <div class="alert alert-danger">@erro</div>
+}
+
+@if (Model.Itens.Count == 0)
+{
+    <div class="alert alert-light border">Nenhuma solicitação encontrada para os filtros informados.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Solicitação</th>
+                    <th>Cliente</th>
+                    <th>Valor</th>
+                    <th>Status</th>
+                    <th>Data</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Itens)
+                {
+                    <tr>
+                        <td class="text-break"><code>@item.Id</code></td>
+                        <td class="text-break"><code>@item.ClienteId</code></td>
+                        <td>@item.ValorSolicitado.ToString("C", CultureInfo.GetCultureInfo("pt-BR"))</td>
+                        <td><span class="badge text-bg-warning">@item.Status</span></td>
+                        <td>@item.CriadoEm.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                        <td><a asp-action="Detalhes" asp-route-id="@item.Id">Detalhes</a></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center">
+        <span class="text-secondary small">
+            Página @Model.Pagina de @Model.TotalPaginas — @Model.TotalRegistros registro(s)
+        </span>
+        <div class="btn-group">
+            @if (Model.Pagina > 1)
+            {
+                <a class="btn btn-outline-secondary btn-sm"
+                   asp-action="Index" asp-route-clienteId="@Model.ClienteId"
+                   asp-route-pagina="@(Model.Pagina - 1)" asp-route-tamanhoPagina="@Model.TamanhoPagina">Anterior</a>
+            }
+            @if (Model.Pagina < Model.TotalPaginas)
+            {
+                <a class="btn btn-outline-secondary btn-sm"
+                   asp-action="Index" asp-route-clienteId="@Model.ClienteId"
+                   asp-route-pagina="@(Model.Pagina + 1)" asp-route-tamanhoPagina="@Model.TamanhoPagina">Próxima</a>
+            }
+        </div>
+    </div>
+}
