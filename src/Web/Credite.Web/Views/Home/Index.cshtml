@@ -1,0 +1,40 @@
+@{
+    ViewData["Title"] = "Início";
+}
+
+<div class="p-4 p-md-5 mb-4 bg-light rounded-3">
+    <div class="col-lg-9">
+        <h1 class="display-6 fw-semibold">Painel Credite</h1>
+        <p class="lead mb-0">Interface web para cadastro de clientes fictícios e acompanhamento de solicitações de crédito.</p>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h5">Clientes</h2>
+                <p class="text-secondary">Cadastre um cliente ou consulte um cadastro pelo identificador.</p>
+                <a class="btn btn-primary" asp-controller="Clientes" asp-action="Index">Acessar clientes</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h5">Nova solicitação</h2>
+                <p class="text-secondary">Registre uma solicitação vinculada a um cliente já cadastrado.</p>
+                <a class="btn btn-primary" asp-controller="Solicitacoes" asp-action="Criar">Criar solicitação</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h5">Consultar solicitações</h2>
+                <p class="text-secondary">Consulte a listagem paginada, filtre por cliente e veja os detalhes.</p>
+                <a class="btn btn-outline-primary" asp-controller="Solicitacoes" asp-action="Index">Ver solicitações</a>
+            </div>
+        </div>
+    </div>
+</div>
